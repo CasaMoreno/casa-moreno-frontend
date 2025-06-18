@@ -1,4 +1,4 @@
-// Arquivo: src/pages/admin/edit/[id].js (VERSÃO FINAL COM COMPONENTE IMPORTADO)
+// src/pages/admin/edit/[id].js (VERSÃO COM CAMPO 'CONDIÇÃO')
 
 import { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -9,7 +9,7 @@ import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import apiClient from '@/api/axios';
-import CancelButton from '@/components/common/CancelButton'; // NOVO: Importa o componente do botão
+import CancelButton from '@/components/common/CancelButton';
 
 const EditPageContainer = styled.div`
   max-width: 800px;
@@ -34,7 +34,16 @@ const ButtonContainer = styled.div`
   justify-content: space-between; 
 `;
 
-// REMOVIDO: A definição do CancelButton foi movida para seu próprio arquivo.
+// NOVO: Estilo para o campo de seleção (dropdown)
+const StyledSelect = styled.select`
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  font-size: 1rem;
+  background-color: white;
+`;
 
 const EditProductPage = ({ product }) => {
     const [formData, setFormData] = useState(product);
@@ -75,6 +84,14 @@ const EditProductPage = ({ product }) => {
                     <label>Categoria</label>
                     <Input name="productCategory" value={formData.productCategory || ''} onChange={handleChange} />
 
+                    {/* NOVO: Campo para selecionar a condição do produto */}
+                    <label>Condição</label>
+                    <StyledSelect name="productCondition" value={formData.productCondition || ''} onChange={handleChange}>
+                        <option value="">Selecione...</option>
+                        <option value="Novo">Novo</option>
+                        <option value="Usado">Usado</option>
+                    </StyledSelect>
+
                     <label>Preço Atual</label>
                     <Input name="currentPrice" type="number" value={formData.currentPrice || ''} onChange={handleChange} />
 
@@ -86,7 +103,6 @@ const EditProductPage = ({ product }) => {
 
                     <ButtonContainer>
                         <Link href="/admin" passHref>
-                            {/* O componente agora é importado e não definido localmente */}
                             <CancelButton as="a">Voltar</CancelButton>
                         </Link>
                         <Button type="submit" disabled={isSubmitting}>
