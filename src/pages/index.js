@@ -1,7 +1,8 @@
-// src/pages/index.js (VERSÃO CORRIGIDA)
+// src/pages/index.js (VERSÃO COM CORREÇÃO DE HIDRATAÇÃO 2)
 
 import styled from 'styled-components';
 import Link from 'next/link';
+import Head from 'next/head';
 import Layout from '@/components/layout/Layout';
 import apiClient from '@/api/axios';
 import ProductCard from '@/components/product/ProductCard';
@@ -18,7 +19,6 @@ const HeroSection = styled.section`
   align-items: center;
   text-align: center;
   padding: 8rem 2rem;
-  margin-top: 1rem;
 
   h1 {
     font-size: 3.5rem;
@@ -53,7 +53,8 @@ const CategoryGrid = styled.div`
   margin: 0 auto;
 `;
 
-const CategoryCard = styled.a`
+// MUDANÇA AQUI: de styled.a para styled.div
+const CategoryCard = styled.div`
   background: white;
   padding: 2.5rem;
   border-radius: 8px;
@@ -62,6 +63,7 @@ const CategoryCard = styled.a`
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primaryBlue};
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer; // Adicionado para manter a indicação de que é clicável
 
   &:hover {
     transform: translateY(-5px);
@@ -71,7 +73,7 @@ const CategoryCard = styled.a`
 
 const ProductGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -97,11 +99,15 @@ const ValueProp = styled.div`
 const HomePage = ({ featuredProducts, categories }) => {
   return (
     <Layout>
+      <Head>
+        <title>Casa Moreno - Ofertas em Smartphones, Laptops e Mais</title>
+      </Head>
+
       <HeroSection>
         <h1>Tecnologia e Inovação ao seu Alcance</h1>
         <p>Explore nossa seleção de smartphones, laptops e eletrônicos com os melhores preços e condições.</p>
-        <Link href="/products/celulares" passHref>
-          <Button as="a">Ver Ofertas</Button>
+        <Link href="/products/celulares">
+          <Button>Ver Ofertas</Button>
         </Link>
       </HeroSection>
 
@@ -109,7 +115,8 @@ const HomePage = ({ featuredProducts, categories }) => {
         <SectionTitle>Navegue por Categorias</SectionTitle>
         <CategoryGrid>
           {categories.map(cat => (
-            <Link key={cat} href={`/products/${cat.toLowerCase()}`} passHref>
+            // MUDANÇA AQUI: removido o passHref
+            <Link key={cat} href={`/products/${cat.toLowerCase()}`}>
               <CategoryCard>{cat}</CategoryCard>
             </Link>
           ))}
