@@ -1,12 +1,10 @@
-// src/components/common/Navbar.js (VERSÃO ATUALIZADA)
-
 import Link from 'next/link';
 import styled from 'styled-components';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect } from 'react';
+import apiClient from '@/api/axios';       
 
-// ALTERADO: Adicionei o estilo dos links 'a' diretamente aqui
-// para aplicar a todos os links dentro da barra de navegação.
 const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
@@ -29,7 +27,6 @@ const NavLogo = styled.div`
   cursor: pointer;
 `;
 
-// ALTERADO: Renomeei NavLinks para um nome mais genérico, pois vamos usá-lo 2x
 const LinksContainer = styled.div`
   display: flex;
   gap: 2rem;
@@ -43,24 +40,41 @@ const LogoutButton = styled.a`
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const [categories, setCategories] = useState([]); // NOVO: Estado para guardar as categorias
+
+  // NOVO: Efeito para buscar as categorias quando o componente carregar
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await apiClient.get('/products/categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Falha ao buscar categorias:", error);
+        setCategories([]); // Em caso de erro, a lista fica vazia
+      }
+    };
+
+    fetchCategories();
+  }, []); // O array vazio [] faz com que isso rode apenas uma vez
 
   return (
     <Nav>
-      {/* --- Seção 1: Logo (Esquerda) --- */}
       <Link href="/">
         <NavLogo>
           <Image src="/casa-moreno-logo.png" alt="Casa Moreno Logo" width={50} height={50} />
         </NavLogo>
       </Link>
       
-      {/* --- Seção 2: Links de Navegação (Centro) --- */}
       <LinksContainer>
         <Link href="/">Home</Link>
-        <Link href="/products/celulares">Celulares</Link>
-        <Link href="/products/laptops">Laptops</Link>
+        {/* NOVO: Loop dinâmico para renderizar as categorias */}
+        {categories.map(category => (
+          <Link key={category} href={`/products/${category}`}>
+            {category}
+          </Link>
+        ))}
       </LinksContainer>
       
-      {/* --- Seção 3: Links de Usuário (Direita) --- */}
       <LinksContainer>
         {user ? (
           <>
