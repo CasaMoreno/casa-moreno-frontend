@@ -10,7 +10,7 @@ import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 
 const AdminDashboardContainer = styled.div`
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
   h1 { margin-bottom: 1rem; }
@@ -36,10 +36,10 @@ const ProductTable = styled.table`
 
 const ActionsCell = styled.td`
   display: flex;
+  justify-content: center;
   gap: 10px;
 `;
 
-// NOVO: Botão de deletar com cor de perigo
 const DeleteButton = styled(Button)`
   background-color: #c82333;
   &:hover {
