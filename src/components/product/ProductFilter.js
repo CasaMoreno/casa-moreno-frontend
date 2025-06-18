@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const FilterContainer = styled.aside`
   flex: 1;
-  max-width: 200px; // Adiciona uma largura máxima para o filtro
+  max-width: 200px;
   margin-right: 2rem;
   padding-right: 2rem;
   border-right: 1px solid #ddd;
