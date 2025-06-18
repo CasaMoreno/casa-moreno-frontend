@@ -18,6 +18,7 @@ const HeroSection = styled.section`
   align-items: center;
   text-align: center;
   padding: 8rem 2rem;
+  margin-top: 1rem;
 
   h1 {
     font-size: 3.5rem;
