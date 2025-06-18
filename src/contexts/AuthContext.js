@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import apiClient from '@/api/axios';
-import jwtDecode from 'jwt-decode'; // Versão corrigida da importação
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
