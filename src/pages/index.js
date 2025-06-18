@@ -100,7 +100,7 @@ const HomePage = ({ featuredProducts, categories }) => {
   return (
     <Layout>
       <Head>
-        <title>Casa Moreno - Ofertas em Smartphones, Laptops e Mais</title>
+        <title>Casa Moreno - A melhor loja do mundo</title>
       </Head>
 
       <HeroSection>
