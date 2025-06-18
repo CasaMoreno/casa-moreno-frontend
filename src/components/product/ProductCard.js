@@ -43,7 +43,7 @@ const ProductCard = ({ product }) => {
     return (
         <Card>
             <ImageWrapper>
-                <Image src={imageUrl} alt={productTitle} fill style={{ objectFit: 'cover' }} />
+                <Image src={imageUrl} alt={productTitle} fill style={{ objectFit: 'contain' }} />
             </ImageWrapper>
             <CardContent>
                 <h3>{productTitle}</h3>
