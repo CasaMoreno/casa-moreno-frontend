@@ -1,3 +1,5 @@
+// src/contexts/AuthContext.js (VERSÃO COM COOKIES)
+
 import { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import apiClient from '@/api/axios';
@@ -36,8 +38,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.post('/login', { username, password });
       const { token } = response.data;
-      
+
+      // Salva tanto no localStorage quanto no cookie
       localStorage.setItem('authToken', token);
+      document.cookie = `authToken=${token}; path=/; max-age=86400; SameSite=Lax`; // Cookie de 1 dia
+
       const decodedToken = jwtDecode(token);
 
       setUser({
@@ -54,18 +59,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Remove de ambos os lugares
     localStorage.removeItem('authToken');
+    document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; // Expira o cookie
+
     setUser(null);
     router.push('/auth/login');
   };
 
   const register = async (userData) => {
     try {
-        await apiClient.post('/users/create', userData);
-        router.push('/auth/login');
+      await apiClient.post('/users/create', userData);
+      router.push('/auth/login');
     } catch (error) {
-        console.error('Registration failed:', error);
-        throw new Error('Erro ao registrar. Tente novamente.');
+      console.error('Registration failed:', error);
+      throw new Error('Erro ao registrar. Tente novamente.');
     }
   };
 

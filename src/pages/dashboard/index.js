@@ -1,13 +1,12 @@
-// src/pages/admin/index.js (VERSÃO COM DATA FORMATADA)
+// src/pages/dashboard/index.js (VERSÃO COMPLETA E PROFISSIONAL)
 
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
-import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
+import Button from '@/components/common/Button';
 import UserEditModal from '@/components/admin/UserEditModal';
 
 const DashboardContainer = styled.div`
@@ -64,6 +63,7 @@ const ProfileHeader = styled.div`
 
 const ProfileInfo = styled.div`
   display: grid;
+  /* Ajusta a coluna do label para caber os textos maiores */
   grid-template-columns: 160px 1fr;
   gap: 0.8rem;
   font-size: 1.1rem;
@@ -71,58 +71,35 @@ const ProfileInfo = styled.div`
   p { margin: 0; }
 `;
 
-const ManagementSection = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  text-align: center;
-`;
 
-const ManagementCard = styled.div`
-  background: white;
-  padding: 2.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: ${({ theme }) => theme.colors.primaryBlue};
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const AdminDashboard = () => {
-    const { user: authUser } = useAuth();
-    const [adminData, setAdminData] = useState(null);
+const UserDashboard = () => {
+    const { user: authUser, loading: authLoading } = useAuth();
+    const [userData, setUserData] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         if (authUser) {
             apiClient.get(`/users/username?username=${authUser.username}`)
                 .then(response => {
-                    setAdminData(response.data);
+                    setUserData(response.data);
                 })
-                .catch(error => console.error("Falha ao buscar dados do admin", error));
+                .catch(error => console.error("Falha ao buscar dados do usuário", error));
         }
     }, [authUser]);
 
-    const handleUpdateProfile = async (data) => {
+    const handleUpdateUser = async (data) => {
         try {
             const response = await apiClient.put('/users/update', data);
-            setAdminData(response.data);
+            setUserData(response.data);
             setIsEditing(false);
             alert('Perfil atualizado com sucesso!');
         } catch (error) {
             console.error("Falha ao atualizar perfil", error);
-            alert("Não foi possível atualizar o seu perfil.");
+            alert("Não foi possível atualizar o perfil.");
         }
     };
 
-    // ALTERAÇÃO AQUI: Função de formatação ajustada
+    // Função para formatar a data no padrão dd/mm/yyyy às hh:mm
     const formatDate = (dateString) => {
         if (!dateString) return 'Não disponível';
 
@@ -142,7 +119,7 @@ const AdminDashboard = () => {
         return `${datePart} às ${timePart}`;
     };
 
-    if (!adminData) {
+    if (authLoading || !userData) {
         return <Layout><div>Carregando...</div></Layout>;
     }
 
@@ -150,45 +127,35 @@ const AdminDashboard = () => {
         <Layout>
             {isEditing && (
                 <UserEditModal
-                    user={adminData}
+                    user={userData}
                     onClose={() => setIsEditing(false)}
-                    onSave={handleUpdateProfile}
+                    onSave={handleUpdateUser}
                     title="Editar Meu Perfil"
                 />
             )}
             <DashboardContainer>
-                <Title>Painel do Administrador</Title>
-
+                <Title>Meu Perfil</Title>
                 <ProfileCard>
-                    <Avatar>{adminData.name.charAt(0)}</Avatar>
+                    <Avatar>{userData.name.charAt(0)}</Avatar>
                     <ProfileContent>
                         <ProfileHeader>
-                            <h2>{adminData.name}</h2>
+                            <h2>Meus Dados</h2>
                             <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
                         </ProfileHeader>
+                        {/* LISTA COMPLETA DE INFORMAÇÕES */}
                         <ProfileInfo>
-                            <strong>Username:</strong> <p>{adminData.username}</p>
-                            <strong>Email:</strong> <p>{adminData.email}</p>
-                            <strong>Telefone:</strong> <p>{adminData.phone || 'Não informado'}</p>
-                            <strong>Perfil:</strong> <p>{adminData.profile}</p>
-                            <strong>Criado em:</strong> <p>{formatDate(adminData.createdAt)}</p>
-                            <strong>Atualizado em:</strong> <p>{formatDate(adminData.updatedAt)}</p>
+                            <strong>Nome:</strong><p>{userData.name}</p>
+                            <strong>Username:</strong><p>{userData.username}</p>
+                            <strong>Email:</strong><p>{userData.email}</p>
+                            <strong>Telefone:</strong><p>{userData.phone || 'Não informado'}</p>
+                            <strong>Criado em:</strong><p>{formatDate(userData.createdAt)}</p>
+                            <strong>Atualizado em:</strong><p>{formatDate(userData.updatedAt)}</p>
                         </ProfileInfo>
                     </ProfileContent>
                 </ProfileCard>
-
-                <ManagementSection>
-                    <Link href="/admin/products">
-                        <ManagementCard>Gerenciar Produtos</ManagementCard>
-                    </Link>
-                    <Link href="/admin/users">
-                        <ManagementCard>Gerenciar Usuários</ManagementCard>
-                    </Link>
-                </ManagementSection>
-
             </DashboardContainer>
         </Layout>
     );
 };
 
-export default withAuth(AdminDashboard, ['ADMIN']);
+export default withAuth(UserDashboard);

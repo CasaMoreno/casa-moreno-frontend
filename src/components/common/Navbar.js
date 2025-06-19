@@ -1,4 +1,4 @@
-// src/components/common/Navbar.js (VERSÃO COM SUBLINHADO SUTIL)
+// src/components/common/Navbar.js (VERSÃO COM LINK PARA DASHBOARD)
 
 import Link from 'next/link';
 import styled, { css } from 'styled-components';
@@ -44,24 +44,19 @@ const StyledLink = styled.a`
   color: ${({ isActive }) => (isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
   font-size: ${({ isActive }) => (isActive ? '1.05rem' : '1rem')};
 
-  /* O pseudo-elemento que cria a linha do sublinhado */
   &::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    
-    /* ALTERAÇÕES AQUI */
-    height: 1px; // Deixamos a linha mais FINA
-    background-color: rgba(255, 255, 255, 0.7); // Deixamos a cor mais DISCRETA
-    
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.7);
     transform-origin: center;
     transition: transform 0.3s ease-out;
     transform: scaleX(0);
   }
 
-  /* Remove o efeito de hover do item que já está ativo e aplica nos outros */
   ${({ isActive }) => !isActive && css`
     &:hover::after {
       transform: scaleX(1);
@@ -110,10 +105,17 @@ const Navbar = () => {
       <LinksContainer>
         {user ? (
           <>
-            {user.scope === 'ADMIN' && (
+            {user.scope === 'ADMIN' ? (
               <Link href="/admin" passHref legacyBehavior>
                 <StyledLink isActive={router.pathname.startsWith('/admin')}>
                   Admin Dashboard
+                </StyledLink>
+              </Link>
+            ) : (
+              // NOVO: Link para o dashboard do usuário comum
+              <Link href="/dashboard" passHref legacyBehavior>
+                <StyledLink isActive={router.pathname.startsWith('/dashboard')}>
+                  Meu Perfil
                 </StyledLink>
               </Link>
             )}
