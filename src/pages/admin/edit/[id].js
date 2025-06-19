@@ -1,9 +1,10 @@
-// src/pages/admin/edit/[id].js (VERSÃO COM CONTROLE DE OFERTA)
+// src/pages/admin/edit/[id].js (VERSÃO COM MINIATURA DA IMAGEM)
 
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Link from 'next/link';
+import Image from 'next/image'; // NOVO: Importa o componente de imagem
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
@@ -18,7 +19,19 @@ const EditPageContainer = styled.div`
   border-radius: 5px;
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0,0,0,0.05);
-  h1 { text-align: center; margin-bottom: 2rem; }
+  h1 { text-align: center; margin-bottom: 1rem; }
+`;
+
+// NOVO: Estilo para o contêiner da miniatura
+const ThumbnailContainer = styled.div`
+  width: 150px;
+  height: 150px;
+  position: relative;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  margin: 0 auto 2rem auto; /* Centraliza a miniatura */
+  background-color: #f9f9f9;
 `;
 
 const Form = styled.form`
@@ -44,7 +57,6 @@ const StyledSelect = styled.select`
   background-color: white;
 `;
 
-// NOVO: Checkbox para status de oferta
 const CheckboxContainer = styled.label`
   display: flex;
   align-items: center;
@@ -59,9 +71,12 @@ const EditProductPage = ({ product }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
-
-    // NOVO: Estado para controlar o status de oferta
     const [isPromotional, setIsPromotional] = useState(product.isPromotional || false);
+
+    // Pega a URL da imagem principal ou um placeholder
+    const imageUrl = product.galleryImageUrls && product.galleryImageUrls.length > 0
+        ? product.galleryImageUrls[0]
+        : '/placeholder.png';
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -69,13 +84,13 @@ const EditProductPage = ({ product }) => {
 
     const handlePromotionalChange = async () => {
         const newStatus = !isPromotional;
-        setIsPromotional(newStatus); // Atualização otimista
+        setIsPromotional(newStatus);
         try {
             await apiClient.patch(`/products/${product.productId}/promotional?status=${newStatus}`);
         } catch (err) {
             console.error(err);
             setError('Falha ao atualizar o status promocional. Tente novamente.');
-            setIsPromotional(!newStatus); // Reverte em caso de erro
+            setIsPromotional(!newStatus);
         }
     };
 
@@ -99,6 +114,18 @@ const EditProductPage = ({ product }) => {
         <Layout>
             <EditPageContainer>
                 <h1>Editar Produto</h1>
+
+                {/* NOVO: Miniatura da imagem do produto */}
+                <ThumbnailContainer>
+                    <Image
+                        src={imageUrl}
+                        alt={`Imagem de ${product.productTitle}`}
+                        fill
+                        style={{ objectFit: 'contain' }}
+                        priority
+                    />
+                </ThumbnailContainer>
+
                 <Form onSubmit={handleSubmit}>
                     {error && <p style={{ color: 'red' }}>{error}</p>}
 
@@ -124,7 +151,6 @@ const EditProductPage = ({ product }) => {
                     <label>Link Afiliado</label>
                     <Input name="affiliateLink" value={formData.affiliateLink || ''} onChange={handleChange} />
 
-                    {/* NOVO: Checkbox de oferta */}
                     <CheckboxContainer>
                         <input
                             type="checkbox"

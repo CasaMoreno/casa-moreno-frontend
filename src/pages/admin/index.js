@@ -1,16 +1,17 @@
-// src/pages/admin/index.js (VERSÃO COM CONTROLE DE OFERTAS)
+// src/pages/admin/index.js (NOVA TENTATIVA DE ALINHAMENTO)
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 
 const AdminDashboardContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 2rem auto;
   padding: 2rem;
   h1 { margin-bottom: 1rem; }
@@ -35,15 +36,20 @@ const ProductTable = styled.table`
   th { 
       background-color: #f2f2f2; 
       text-align: center;
-    }
+  }
   td {
       text-align: center;
   }
+  th:nth-child(2), td:nth-child(2) {
+    text-align: left;
+  }
 `;
 
-const ActionsCell = styled.td`
+// ALTERAÇÃO AQUI: Renomeado de ActionsCell (td) para ActionsContainer (div)
+const ActionsContainer = styled.div`
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 10px;
 `;
 
@@ -62,7 +68,6 @@ const CategoryTitle = styled.h2`
   text-align: left;
 `;
 
-// NOVO: Estilos para o Switch de Oferta
 const SwitchLabel = styled.label`
   position: relative;
   display: inline-block;
@@ -144,7 +149,6 @@ const AdminDashboard = ({ initialProducts }) => {
         }
     };
 
-    // NOVO: Função para alterar o status de oferta
     const handlePromotionalToggle = async (productId, currentStatus) => {
         try {
             await apiClient.patch(`/products/${productId}/promotional?status=${!currentStatus}`);
@@ -175,6 +179,7 @@ const AdminDashboard = ({ initialProducts }) => {
                         <ProductTable>
                             <thead>
                                 <tr>
+                                    <th>Imagem</th>
                                     <th>Produto</th>
                                     <th>Marca</th>
                                     <th>Preço</th>
@@ -185,6 +190,15 @@ const AdminDashboard = ({ initialProducts }) => {
                             <tbody>
                                 {groupedAndSortedProducts[category].map(product => (
                                     <tr key={product.productId}>
+                                        <td>
+                                            <Image
+                                                src={product.galleryImageUrls?.[0] || '/placeholder.png'}
+                                                alt={`Imagem de ${product.productTitle}`}
+                                                width={60}
+                                                height={60}
+                                                style={{ objectFit: 'contain', margin: 'auto' }}
+                                            />
+                                        </td>
                                         <td>{product.productTitle}</td>
                                         <td>{product.productBrand}</td>
                                         <td>R$ {product.currentPrice?.toFixed(2)}</td>
@@ -198,14 +212,17 @@ const AdminDashboard = ({ initialProducts }) => {
                                                 <Slider />
                                             </SwitchLabel>
                                         </td>
-                                        <ActionsCell>
-                                            <Link href={`/admin/edit/${product.productId}`}>
-                                                <Button>Editar</Button>
-                                            </Link>
-                                            <DeleteButton onClick={() => handleDelete(product.productId, product.productTitle)}>
-                                                Deletar
-                                            </DeleteButton>
-                                        </ActionsCell>
+                                        {/* ALTERAÇÃO AQUI: Usando uma <td> normal com o container dentro */}
+                                        <td>
+                                            <ActionsContainer>
+                                                <Link href={`/admin/edit/${product.productId}`}>
+                                                    <Button>Editar</Button>
+                                                </Link>
+                                                <DeleteButton onClick={() => handleDelete(product.productId, product.productTitle)}>
+                                                    Deletar
+                                                </DeleteButton>
+                                            </ActionsContainer>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
