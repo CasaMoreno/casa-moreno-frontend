@@ -1,4 +1,4 @@
-// src/components/product/ProductCard.js (VERSÃO COM AJUSTES FINAIS)
+// src/components/product/ProductCard.js (VERSÃO COM OVERLAY AJUSTADO)
 
 import styled from 'styled-components';
 import Image from 'next/image';
@@ -57,7 +57,6 @@ const PromotionBanner = styled.div`
   background-color: #ffc107;
   color: #333; 
   text-align: center;
-  /* ALTERAÇÃO AQUI: Padding vertical diminuído para afinar a tarja */
   padding: 4px 8px;
   margin-top: 1rem;
   font-weight: bold;
@@ -77,10 +76,40 @@ const CardContent = styled.div`
   
   h3 {
     font-size: 1.1rem;
-    /* ALTERAÇÃO AQUI: Margem inferior revertida para o valor original */
     margin-bottom: 0.5rem; 
     height: 44px;
     overflow: hidden;
+  }
+`;
+
+// NOVO: Mensagem de sobreposição (agora é uma div)
+const LoginOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+  text-align: center;
+  border-radius: 4px;
+  cursor: default;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: 5px;
+`;
+
+const PriceWrapper = styled.div`
+  position: relative;
+  margin-bottom: 1rem;
+
+  /* Faz o overlay aparecer quando o mouse está sobre o wrapper */
+  &:hover ${LoginOverlay} {
+      opacity: 1;
   }
 `;
 
@@ -88,8 +117,33 @@ const Price = styled.p`
   font-size: 1.2rem;
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primaryBlue};
-  margin-bottom: 1rem;
+  transition: filter 0.3s ease;
+  margin: 0;
+
+  ${({ isBlurred }) => isBlurred && `
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+    user-select: none;
+    pointer-events: none;
+  `}
 `;
+
+// NOVO: Estilos para o texto e os links no overlay
+const OverlayText = styled.p`
+  margin: 2px 0;
+  font-size: 0.8rem; /* Letra menor */
+  font-family: 'Verdana', sans-serif; /* Fonte diferente */
+  font-weight: normal;
+`;
+
+const OverlayLink = styled.a`
+  font-weight: bold;
+  color: ${({ theme }) => theme.colors.primaryBlue};
+  text-decoration: underline;
+  cursor: pointer;
+  margin: 0 4px;
+`;
+
 
 const ConditionBadge = styled.span`
   display: inline-block;
@@ -153,7 +207,24 @@ const ProductCard = ({ product }) => {
 
       <CardContent>
         <h3>{productTitle}</h3>
-        <Price>R$ {currentPrice?.toFixed(2).replace('.', ',')}</Price>
+
+        <PriceWrapper>
+          <Price isBlurred={!user}>
+            R$ {currentPrice?.toFixed(2).replace('.', ',')}
+          </Price>
+          {!user && (
+            <LoginOverlay>
+              <OverlayText>
+                <Link href="/auth/login" passHref legacyBehavior><OverlayLink>Faça login</OverlayLink></Link>
+                ou
+                <Link href="/auth/register" passHref legacyBehavior><OverlayLink>cadastre-se</OverlayLink></Link>
+              </OverlayText>
+              <OverlayText>
+                para ver o preço
+              </OverlayText>
+            </LoginOverlay>
+          )}
+        </PriceWrapper>
 
         <div style={{ marginTop: 'auto' }}>
           <a href={affiliateLink} target="_blank" rel="noopener noreferrer">
