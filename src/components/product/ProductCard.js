@@ -1,4 +1,4 @@
-// src/components/product/ProductCard.js (VERSÃO ATUALIZADA COM CONTROLES DE ADMIN)
+// src/components/product/ProductCard.js (VERSÃO COM AJUSTES FINAIS)
 
 import styled from 'styled-components';
 import Image from 'next/image';
@@ -11,12 +11,12 @@ import Button from '../common/Button';
 const Card = styled.div`
   border: 1px solid #ddd;
   border-radius: 5px;
-  overflow: hidden;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   background-color: #fff;
   padding: 1rem;
+  overflow: hidden;
 `;
 
 const CardHeader = styled.div`
@@ -24,7 +24,7 @@ const CardHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.75rem;
-  min-height: 28px; /* Evita que o layout mude caso os botões não apareçam */
+  min-height: 28px;
 `;
 
 const AdminActions = styled.div`
@@ -53,6 +53,21 @@ const ImageWrapper = styled.div`
   position: relative;
 `;
 
+const PromotionBanner = styled.div`
+  background-color: #ffc107;
+  color: #333; 
+  text-align: center;
+  /* ALTERAÇÃO AQUI: Padding vertical diminuído para afinar a tarja */
+  padding: 4px 8px;
+  margin-top: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  border-radius: 3px;
+`;
+
+
 const CardContent = styled.div`
   padding-top: 1rem;
   flex-grow: 1;
@@ -62,7 +77,8 @@ const CardContent = styled.div`
   
   h3 {
     font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    /* ALTERAÇÃO AQUI: Margem inferior revertida para o valor original */
+    margin-bottom: 0.5rem; 
     height: 44px;
     overflow: hidden;
   }
@@ -85,6 +101,7 @@ const ConditionBadge = styled.span`
   font-weight: bold;
 `;
 
+
 const ProductCard = ({ product }) => {
   const { user } = useAuth();
   const router = useRouter();
@@ -97,7 +114,7 @@ const ProductCard = ({ product }) => {
       try {
         await apiClient.delete(`/products/delete/${productId}`);
         alert('Produto deletado com sucesso!');
-        router.reload(); // Recarrega a página para atualizar a lista
+        router.reload();
       } catch (error) {
         console.error("Falha ao deletar o produto", error);
         alert("Não foi possível deletar o produto.");
@@ -118,7 +135,7 @@ const ProductCard = ({ product }) => {
             </DeleteButton>
           </AdminActions>
         ) : (
-          <div /> /* Elemento vazio para manter o alinhamento do badge à direita */
+          <div />
         )}
 
         {productCondition && (
@@ -131,6 +148,9 @@ const ProductCard = ({ product }) => {
       <ImageWrapper>
         <Image src={imageUrl} alt={productTitle} fill style={{ objectFit: 'contain' }} />
       </ImageWrapper>
+
+      {product.isPromotional && <PromotionBanner>PROMOÇÃO</PromotionBanner>}
+
       <CardContent>
         <h3>{productTitle}</h3>
         <Price>R$ {currentPrice?.toFixed(2).replace('.', ',')}</Price>

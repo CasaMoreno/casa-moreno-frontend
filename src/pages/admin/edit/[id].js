@@ -1,4 +1,4 @@
-// src/pages/admin/edit/[id].js (VERSÃO COM CAMPO 'CONDIÇÃO')
+// src/pages/admin/edit/[id].js (VERSÃO COM CONTROLE DE OFERTA)
 
 import { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -34,7 +34,6 @@ const ButtonContainer = styled.div`
   justify-content: space-between; 
 `;
 
-// NOVO: Estilo para o campo de seleção (dropdown)
 const StyledSelect = styled.select`
   width: 100%;
   padding: 10px;
@@ -45,14 +44,39 @@ const StyledSelect = styled.select`
   background-color: white;
 `;
 
+// NOVO: Checkbox para status de oferta
+const CheckboxContainer = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+`;
+
 const EditProductPage = ({ product }) => {
     const [formData, setFormData] = useState(product);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
 
+    // NOVO: Estado para controlar o status de oferta
+    const [isPromotional, setIsPromotional] = useState(product.isPromotional || false);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handlePromotionalChange = async () => {
+        const newStatus = !isPromotional;
+        setIsPromotional(newStatus); // Atualização otimista
+        try {
+            await apiClient.patch(`/products/${product.productId}/promotional?status=${newStatus}`);
+        } catch (err) {
+            console.error(err);
+            setError('Falha ao atualizar o status promocional. Tente novamente.');
+            setIsPromotional(!newStatus); // Reverte em caso de erro
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -84,7 +108,6 @@ const EditProductPage = ({ product }) => {
                     <label>Categoria</label>
                     <Input name="productCategory" value={formData.productCategory || ''} onChange={handleChange} />
 
-                    {/* NOVO: Campo para selecionar a condição do produto */}
                     <label>Condição</label>
                     <StyledSelect name="productCondition" value={formData.productCondition || ''} onChange={handleChange}>
                         <option value="">Selecione...</option>
@@ -100,6 +123,16 @@ const EditProductPage = ({ product }) => {
 
                     <label>Link Afiliado</label>
                     <Input name="affiliateLink" value={formData.affiliateLink || ''} onChange={handleChange} />
+
+                    {/* NOVO: Checkbox de oferta */}
+                    <CheckboxContainer>
+                        <input
+                            type="checkbox"
+                            checked={isPromotional}
+                            onChange={handlePromotionalChange}
+                        />
+                        Marcar como Oferta
+                    </CheckboxContainer>
 
                     <ButtonContainer>
                         <Link href="/admin" passHref>

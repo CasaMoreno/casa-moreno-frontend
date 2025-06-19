@@ -1,4 +1,4 @@
-// src/pages/admin/index.js (VERSÃO COM PRODUTOS AGRUPADOS)
+// src/pages/admin/index.js (VERSÃO COM CONTROLE DE OFERTAS)
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
@@ -25,14 +25,20 @@ const TopActions = styled.div`
 const ProductTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 3rem; // Espaço entre as tabelas de categorias
+  margin-bottom: 3rem; 
   th, td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
     vertical-align: middle;
   }
-  th { background-color: #f2f2f2; }
+  th { 
+      background-color: #f2f2f2; 
+      text-align: center;
+    }
+  td {
+      text-align: center;
+  }
 `;
 
 const ActionsCell = styled.td`
@@ -48,7 +54,6 @@ const DeleteButton = styled(Button)`
   }
 `;
 
-// NOVO: Estilo para o título de cada categoria
 const CategoryTitle = styled.h2`
   margin-top: 2rem;
   margin-bottom: 1.5rem;
@@ -57,13 +62,58 @@ const CategoryTitle = styled.h2`
   text-align: left;
 `;
 
+// NOVO: Estilos para o Switch de Oferta
+const SwitchLabel = styled.label`
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+`;
+
+const Slider = styled.span`
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+`;
+
+const SwitchInput = styled.input`
+    &:checked + ${Slider} {
+        background-color: ${({ theme }) => theme.colors.primaryBlue};
+    }
+    &:checked + ${Slider}:before {
+        transform: translateX(26px);
+    }
+`;
+
+
 const AdminDashboard = ({ initialProducts }) => {
     const [products, setProducts] = useState(initialProducts);
     const router = useRouter();
 
-    // --- LÓGICA PARA AGRUPAR E ORDENAR PRODUTOS ---
     const groupedAndSortedProducts = useMemo(() => {
-        // 1. Agrupa os produtos por categoria
         const grouped = products.reduce((acc, product) => {
             const category = product.productCategory || 'Sem Categoria';
             if (!acc[category]) {
@@ -73,7 +123,6 @@ const AdminDashboard = ({ initialProducts }) => {
             return acc;
         }, {});
 
-        // 2. Ordena os produtos dentro de cada categoria por título
         for (const category in grouped) {
             grouped[category].sort((a, b) => a.productTitle.localeCompare(b.productTitle));
         }
@@ -81,7 +130,6 @@ const AdminDashboard = ({ initialProducts }) => {
         return grouped;
     }, [products]);
 
-    // 3. Pega os nomes das categorias e os ordena alfabeticamente
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 
     const handleDelete = async (productId, productTitle) => {
@@ -96,6 +144,21 @@ const AdminDashboard = ({ initialProducts }) => {
         }
     };
 
+    // NOVO: Função para alterar o status de oferta
+    const handlePromotionalToggle = async (productId, currentStatus) => {
+        try {
+            await apiClient.patch(`/products/${productId}/promotional?status=${!currentStatus}`);
+            setProducts(prevProducts =>
+                prevProducts.map(p =>
+                    p.productId === productId ? { ...p, isPromotional: !currentStatus } : p
+                )
+            );
+        } catch (error) {
+            console.error("Falha ao atualizar o status promocional", error);
+            alert("Não foi possível atualizar o status promocional do produto.");
+        }
+    };
+
     return (
         <Layout>
             <AdminDashboardContainer>
@@ -106,7 +169,6 @@ const AdminDashboard = ({ initialProducts }) => {
                     </Link>
                 </TopActions>
 
-                {/* --- RENDERIZAÇÃO AGRUPADA POR CATEGORIA --- */}
                 {sortedCategories.map(category => (
                     <div key={category}>
                         <CategoryTitle>{category}</CategoryTitle>
@@ -116,6 +178,7 @@ const AdminDashboard = ({ initialProducts }) => {
                                     <th>Produto</th>
                                     <th>Marca</th>
                                     <th>Preço</th>
+                                    <th>Oferta</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -125,6 +188,16 @@ const AdminDashboard = ({ initialProducts }) => {
                                         <td>{product.productTitle}</td>
                                         <td>{product.productBrand}</td>
                                         <td>R$ {product.currentPrice?.toFixed(2)}</td>
+                                        <td>
+                                            <SwitchLabel>
+                                                <SwitchInput
+                                                    type="checkbox"
+                                                    checked={product.isPromotional || false}
+                                                    onChange={() => handlePromotionalToggle(product.productId, product.isPromotional)}
+                                                />
+                                                <Slider />
+                                            </SwitchLabel>
+                                        </td>
                                         <ActionsCell>
                                             <Link href={`/admin/edit/${product.productId}`}>
                                                 <Button>Editar</Button>

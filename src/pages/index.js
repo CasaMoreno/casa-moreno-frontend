@@ -1,4 +1,4 @@
-// src/pages/index.js (VERSÃO COM CORREÇÃO DE HIDRATAÇÃO 2)
+// src/pages/index.js (VERSÃO COM CARROSSEL DE OFERTAS)
 
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -7,6 +7,7 @@ import Layout from '@/components/layout/Layout';
 import apiClient from '@/api/axios';
 import ProductCard from '@/components/product/ProductCard';
 import Button from '@/components/common/Button';
+import Carousel from '@/components/common/Carousel'; // NOVO: Importa o carrossel
 
 const HeroSection = styled.section`
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/hero-banner.png');
@@ -34,6 +35,12 @@ const HeroSection = styled.section`
   }
 `;
 
+const HeroButton = styled(Button)`
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+`;
+
 const Section = styled.section`
   padding: 4rem 2rem;
   text-align: center;
@@ -53,7 +60,6 @@ const CategoryGrid = styled.div`
   margin: 0 auto;
 `;
 
-// MUDANÇA AQUI: de styled.a para styled.div
 const CategoryCard = styled.div`
   background: white;
   padding: 2.5rem;
@@ -63,20 +69,12 @@ const CategoryCard = styled.div`
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primaryBlue};
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer; // Adicionado para manter a indicação de que é clicável
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
-`;
-
-const ProductGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
 `;
 
 const ValuePropsContainer = styled.section`
@@ -96,7 +94,7 @@ const ValueProp = styled.div`
   }
 `;
 
-const HomePage = ({ featuredProducts, categories }) => {
+const HomePage = ({ promotionalProducts, categories }) => {
   return (
     <Layout>
       <Head>
@@ -106,8 +104,8 @@ const HomePage = ({ featuredProducts, categories }) => {
       <HeroSection>
         <h1>Tecnologia e Inovação ao seu Alcance</h1>
         <p>Explore nossa seleção de smartphones, laptops e eletrônicos com os melhores preços e condições.</p>
-        <Link href="/products/celulares">
-          <Button>Ver Ofertas</Button>
+        <Link href="/offers">
+          <HeroButton>Ver Ofertas</HeroButton>
         </Link>
       </HeroSection>
 
@@ -115,7 +113,6 @@ const HomePage = ({ featuredProducts, categories }) => {
         <SectionTitle>Navegue por Categorias</SectionTitle>
         <CategoryGrid>
           {categories.map(cat => (
-            // MUDANÇA AQUI: removido o passHref
             <Link key={cat} href={`/products/${cat.toLowerCase()}`}>
               <CategoryCard>{cat}</CategoryCard>
             </Link>
@@ -123,13 +120,10 @@ const HomePage = ({ featuredProducts, categories }) => {
         </CategoryGrid>
       </Section>
 
+      {/* SEÇÃO DE DESTAQUES MODIFICADA */}
       <Section style={{ backgroundColor: '#f9f9f9' }}>
-        <SectionTitle>Nossos Destaques</SectionTitle>
-        <ProductGrid>
-          {featuredProducts.map(product => (
-            <ProductCard key={product.productId} product={product} />
-          ))}
-        </ProductGrid>
+        <SectionTitle>Nossas Ofertas</SectionTitle>
+        <Carousel products={promotionalProducts} />
       </Section>
 
       <ValuePropsContainer>
@@ -150,29 +144,27 @@ const HomePage = ({ featuredProducts, categories }) => {
   );
 };
 
+// LÓGICA DE BUSCA DE DADOS ATUALIZADA
 export async function getServerSideProps() {
   try {
-    const categoriesResponse = await apiClient.get('/products/categories');
-    const categories = categoriesResponse.data;
+    // Busca as categorias e as ofertas em paralelo para mais eficiência
+    const [categoriesRes, promotionalRes] = await Promise.all([
+      apiClient.get('/products/categories'),
+      apiClient.get('/products/promotional')
+    ]);
 
-    let featuredProducts = [];
-    if (categories && categories.length > 0) {
-      const firstCategory = categories[0].toLowerCase();
-      const productsResponse = await apiClient.get('/products/find-by-category', {
-        params: { category: firstCategory, page: 0, size: 4 }
-      });
-      featuredProducts = productsResponse.data.content;
-    }
+    const categories = categoriesRes.data;
+    const promotionalProducts = promotionalRes.data;
 
     return {
       props: {
-        featuredProducts,
+        promotionalProducts,
         categories
       },
     };
   } catch (error) {
     console.error("Failed to fetch homepage data", error);
-    return { props: { featuredProducts: [], categories: [] } };
+    return { props: { promotionalProducts: [], categories: [] } };
   }
 }
 
