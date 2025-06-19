@@ -1,7 +1,7 @@
-// src/pages/products/[...slug].js (VERSÃO ATUALIZADA)
+// src/pages/products/[...slug].js (VERSÃO COM LÓGICA DE FILTRO DE CONDIÇÃO)
 
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react'; // Imports novos
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import apiClient from '@/api/axios';
 import Layout from '@/components/layout/Layout';
@@ -23,50 +23,65 @@ const ProductsGrid = styled.div`
 const ProductsPage = ({ products, category, allBrands }) => {
     const router = useRouter();
 
-    // Converte a query da URL (que pode ser string ou array) para um array de marcas selecionadas
-    const getBrandsFromQuery = () => {
-        const { brand } = router.query;
-        if (!brand) return [];
-        return Array.isArray(brand) ? brand : [brand];
+    const getQueryParam = (param, defaultValue) => {
+        const value = router.query[param];
+        if (!value) return defaultValue;
+        return value;
     };
 
-    const [selectedBrands, setSelectedBrands] = useState(getBrandsFromQuery());
+    const [selectedBrands, setSelectedBrands] = useState(() => {
+        const brands = getQueryParam('brand', []);
+        return Array.isArray(brands) ? brands : [brands];
+    });
+    const [minPrice, setMinPrice] = useState(() => getQueryParam('min', ''));
+    const [maxPrice, setMaxPrice] = useState(() => getQueryParam('max', ''));
 
-    // Função para lidar com a mudança no checkbox
+    // NOVO: Estado para o filtro de condição
+    const [selectedConditions, setSelectedConditions] = useState(() => {
+        const conditions = getQueryParam('condition', []);
+        return Array.isArray(conditions) ? conditions : [conditions];
+    });
+
     const handleBrandChange = (brand) => {
-        setSelectedBrands(prev => {
-            if (prev.includes(brand)) {
-                return prev.filter(b => b !== brand); // Desmarca
-            } else {
-                return [...prev, brand]; // Marca
-            }
-        });
+        setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
     };
 
-    // Efeito que observa mudanças nas marcas selecionadas e atualiza a URL
+    const handleMinPriceChange = (e) => setMinPrice(e.target.value);
+    const handleMaxPriceChange = (e) => setMaxPrice(e.target.value);
+
+    // NOVO: Função para lidar com a mudança no filtro de condição
+    const handleConditionChange = (condition) => {
+        setSelectedConditions(prev => prev.includes(condition) ? prev.filter(c => c !== condition) : [...prev, condition]);
+    };
+
     useEffect(() => {
         const { slug } = router.query;
         const categoryPath = slug[0] || '';
+        const query = {};
 
-        const query = { ...router.query };
-
-        if (selectedBrands.length > 0) {
-            query.brand = selectedBrands;
-        } else {
-            delete query.brand; // Remove o parâmetro 'brand' se nenhuma marca estiver selecionada
-        }
+        if (selectedBrands.length > 0) query.brand = selectedBrands;
+        if (minPrice) query.min = minPrice;
+        if (maxPrice) query.max = maxPrice;
+        if (selectedConditions.length > 0) query.condition = selectedConditions;
 
         router.push({
             pathname: `/products/${categoryPath}`,
             query: query,
-        }, undefined, { shallow: true }); // 'shallow: true' evita re-rodar getServerSideProps, pois vamos filtrar no cliente
+        }, undefined, { shallow: true });
 
-    }, [selectedBrands]); // Roda sempre que selectedBrands mudar
+    }, [selectedBrands, minPrice, maxPrice, selectedConditions]);
 
-    // Filtra os produtos no lado do cliente com base no estado
-    const filteredProducts = products.filter(p =>
-        selectedBrands.length === 0 || selectedBrands.includes(p.productBrand)
-    );
+    const filteredProducts = products.filter(p => {
+        const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(p.productBrand);
+        const minPriceFloat = parseFloat(minPrice);
+        const maxPriceFloat = parseFloat(maxPrice);
+        const productPrice = p.currentPrice;
+        const minPriceMatch = !minPrice || !minPriceFloat || productPrice >= minPriceFloat;
+        const maxPriceMatch = !maxPrice || !maxPriceFloat || productPrice <= maxPriceFloat;
+        const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(p.productCondition);
+
+        return brandMatch && minPriceMatch && maxPriceMatch && conditionMatch;
+    });
 
     if (router.isFallback) {
         return <div>Carregando...</div>;
@@ -80,6 +95,12 @@ const ProductsPage = ({ products, category, allBrands }) => {
                     brands={allBrands}
                     selectedBrands={selectedBrands}
                     onBrandChange={handleBrandChange}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    onMinPriceChange={handleMinPriceChange}
+                    onMaxPriceChange={handleMaxPriceChange}
+                    selectedConditions={selectedConditions}
+                    onConditionChange={handleConditionChange}
                 />
                 <ProductsGrid>
                     {filteredProducts.length > 0 ? (
@@ -95,7 +116,6 @@ const ProductsPage = ({ products, category, allBrands }) => {
     );
 };
 
-// ALTERADO: Agora a gente pega todas as marcas da categoria para popular o filtro
 export async function getServerSideProps(context) {
     const { slug } = context.params;
     const category = slug[0] || 'all';
@@ -105,7 +125,7 @@ export async function getServerSideProps(context) {
             params: {
                 category: category,
                 page: 0,
-                size: 100 // Pega um número grande de produtos para filtrar no cliente
+                size: 100
             }
         });
 
@@ -116,7 +136,7 @@ export async function getServerSideProps(context) {
             props: {
                 products,
                 category,
-                allBrands, // Passa todas as marcas disponíveis para a página
+                allBrands,
             },
         };
     } catch (error) {
