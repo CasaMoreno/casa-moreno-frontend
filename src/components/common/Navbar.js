@@ -1,10 +1,10 @@
-// src/components/common/Navbar.js (VERSÃO COM LINK PARA DASHBOARD)
+// src/components/common/Navbar.js (VERSÃO ATUALIZADA)
 
 import Link from 'next/link';
 import styled, { css } from 'styled-components';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiClient from '@/api/axios';
 
 const Nav = styled.nav`
@@ -64,10 +64,61 @@ const StyledLink = styled.a`
   `}
 `;
 
+// --- NOVOS ESTILOS PARA O DROPDOWN DO USUÁRIO ---
+const UserMenuContainer = styled.div`
+  position: relative;
+`;
+
+const UserMenuButton = styled.button`
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 0.5rem 0;
+  z-index: 1001;
+  width: 180px;
+  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+`;
+
+const DropdownItem = styled.a`
+  display: block;
+  padding: 0.75rem 1rem;
+  color: ${({ theme }) => theme.colors.darkGray};
+  cursor: pointer;
+  font-weight: normal;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGray};
+  }
+`;
+// --- FIM DOS NOVOS ESTILOS ---
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
+  const [userData, setUserData] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -80,6 +131,40 @@ const Navbar = () => {
     };
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    // Busca os dados completos do usuário quando o authUser for carregado
+    if (user) {
+      apiClient.get(`/users/username?username=${user.username}`)
+        .then(response => {
+          setUserData(response.data);
+        })
+        .catch(error => console.error("Falha ao buscar dados do usuário na navbar", error));
+    } else {
+      setUserData(null);
+    }
+  }, [user]);
+
+  // Fecha o menu ao clicar fora dele
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getFirstName = () => {
+    if (!userData || !userData.name) return '';
+    return userData.name.split(' ')[0];
+  };
+
+  const getDashboardPath = () => {
+    if (!user) return '/';
+    return user.scope === 'ADMIN' ? '/admin' : '/dashboard';
+  };
 
   return (
     <Nav>
@@ -104,29 +189,32 @@ const Navbar = () => {
 
       <LinksContainer>
         {user ? (
-          <>
-            {user.scope === 'ADMIN' ? (
-              <Link href="/admin" passHref legacyBehavior>
-                <StyledLink isActive={router.pathname.startsWith('/admin')}>
-                  Admin Dashboard
-                </StyledLink>
+          <UserMenuContainer ref={menuRef}>
+            <UserMenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              Olá, {getFirstName()} ▼
+            </UserMenuButton>
+            <DropdownMenu isOpen={isMenuOpen}>
+              <Link href={getDashboardPath()} passHref legacyBehavior>
+                <DropdownItem onClick={() => setIsMenuOpen(false)}>Meu Painel</DropdownItem>
               </Link>
-            ) : (
-              // NOVO: Link para o dashboard do usuário comum
-              <Link href="/dashboard" passHref legacyBehavior>
-                <StyledLink isActive={router.pathname.startsWith('/dashboard')}>
-                  Meu Perfil
-                </StyledLink>
-              </Link>
-            )}
-            <StyledLink as="a" onClick={logout}>Logout</StyledLink>
-          </>
+              <DropdownItem onClick={() => { logout(); setIsMenuOpen(false); }}>
+                Sair
+              </DropdownItem>
+            </DropdownMenu>
+          </UserMenuContainer>
         ) : (
-          <Link href="/auth/login" passHref legacyBehavior>
-            <StyledLink isActive={router.pathname === '/auth/login'}>
-              Login
-            </StyledLink>
-          </Link>
+          <>
+            <Link href="/auth/login" passHref legacyBehavior>
+              <StyledLink isActive={router.pathname === '/auth/login'}>
+                Login
+              </StyledLink>
+            </Link>
+            <Link href="/auth/register" passHref legacyBehavior>
+              <StyledLink isActive={router.pathname === '/auth/register'}>
+                Cadastre-se
+              </StyledLink>
+            </Link>
+          </>
         )}
       </LinksContainer>
     </Nav>
