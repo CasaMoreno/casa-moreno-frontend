@@ -1,9 +1,10 @@
-// src/components/admin/UserEditModal.js (VERSÃO COM LABELS)
+// src/components/admin/UserEditModal.js (VERSÃO COM MÁSCARA DE TELEFONE)
 
 import { useState } from 'react';
 import styled from 'styled-components';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
+import { formatPhoneNumber } from '@/utils/formatters'; // NOVO: Importa a função
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -35,10 +36,9 @@ const ModalContent = styled.div`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Diminui o espaçamento para acomodar os labels */
+  gap: 0.5rem;
 `;
 
-// NOVO: Estilo para os labels
 const Label = styled.label`
   font-weight: bold;
   font-size: 0.9rem;
@@ -60,19 +60,33 @@ const UserEditModal = ({ user, onClose, onSave, title = "Editar Usuário" }) => 
         name: user.name || '',
         username: user.username || '',
         email: user.email || '',
-        phone: user.phone || '',
+        phone: formatPhoneNumber(user.phone) || '', // Formata o valor inicial
         password: '',
     });
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        // Aplica a formatação apenas no campo de telefone
+        if (name === 'phone') {
+            setFormData({ ...formData, [name]: formatPhoneNumber(value) });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Remove a formatação do telefone antes de enviar para o backend
+        const dataToSave = {
+            ...formData,
+            phone: formData.phone.replace(/\D/g, '') // Envia apenas os dígitos
+        };
+
         const dataToUpdate = Object.fromEntries(
-            Object.entries(formData).filter(([key, value]) => value !== '')
+            Object.entries(dataToSave).filter(([key, value]) => value !== '')
         );
+
         onSave(dataToUpdate);
     };
 
@@ -91,7 +105,14 @@ const UserEditModal = ({ user, onClose, onSave, title = "Editar Usuário" }) => 
                     <Input name="email" type="email" value={formData.email} onChange={handleChange} required />
 
                     <Label>Telefone</Label>
-                    <Input name="phone" value={formData.phone} onChange={handleChange} />
+                    <Input
+                        name="phone"
+                        type="tel"
+                        placeholder="(xx) xxxxx-xxxx"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        maxLength="15"
+                    />
 
                     <Label>Nova Senha (opcional)</Label>
                     <Input name="password" type="password" placeholder="Deixe em branco para não alterar" value={formData.password} onChange={handleChange} />
