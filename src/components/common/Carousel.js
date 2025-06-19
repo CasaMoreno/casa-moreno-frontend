@@ -1,4 +1,4 @@
-// src/components/common/Carousel.js (VERSÃO COM EFEITO COVERFLOW)
+// src/components/common/Carousel.js (VERSÃO COM SLIDE CLICÁVEL)
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, EffectCoverflow } from 'swiper/modules';
@@ -48,37 +48,38 @@ const CarouselContainer = styled.div`
 `;
 
 const Carousel = ({ products }) => {
-    if (!products || products.length === 0) {
-        return <p style={{ textAlign: 'center' }}>Nenhuma oferta encontrada no momento.</p>;
-    }
+  if (!products || products.length === 0) {
+    return <p style={{ textAlign: 'center' }}>Nenhuma oferta encontrada no momento.</p>;
+  }
 
-    return (
-        <CarouselContainer>
-            <Swiper
-                effect={'coverflow'}
-                grabCursor={true}
-                centeredSlides={true}
-                slidesPerView={'auto'}
-                loop={true} // Faz o carrossel girar infinitamente
-                coverflowEffect={{
-                    rotate: 30,       // Rotação dos slides laterais
-                    stretch: 0,       // Distância entre os slides
-                    depth: 100,       // Profundidade do efeito 3D
-                    modifier: 1,      // Multiplicador do efeito
-                    slideShadows: true, // Adiciona sombras para dar profundidade
-                }}
-                navigation={true} // Habilita as setas de navegação
-                modules={[EffectCoverflow, Navigation]}
-                className="mySwiper"
-            >
-                {products.map(product => (
-                    <SwiperSlide key={product.productId}>
-                        <ProductCard product={product} />
-                    </SwiperSlide>
-                ))}
-            </Swiper>
-        </CarouselContainer>
-    );
+  return (
+    <CarouselContainer>
+      <Swiper
+        effect={'coverflow'}
+        grabCursor={true}
+        centeredSlides={true}
+        slidesPerView={'auto'}
+        loop={true}
+        slideToClickedSlide={true} // <-- ADICIONADO AQUI
+        coverflowEffect={{
+          rotate: 30,
+          stretch: 0,
+          depth: 100,
+          modifier: 1,
+          slideShadows: true,
+        }}
+        navigation={true}
+        modules={[EffectCoverflow, Navigation]}
+        className="mySwiper"
+      >
+        {products.map(product => (
+          <SwiperSlide key={product.productId}>
+            <ProductCard product={product} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </CarouselContainer>
+  );
 };
 
 export default Carousel;
