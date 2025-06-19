@@ -1,9 +1,8 @@
-// src/pages/admin/index.js (VERSÃO COM DATA FORMATADA)
-
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotification } from '@/hooks/useNotification';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
@@ -99,6 +98,7 @@ const AdminDashboard = () => {
     const { user: authUser } = useAuth();
     const [adminData, setAdminData] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         if (authUser) {
@@ -115,30 +115,25 @@ const AdminDashboard = () => {
             const response = await apiClient.put('/users/update', data);
             setAdminData(response.data);
             setIsEditing(false);
-            alert('Perfil atualizado com sucesso!');
+            showNotification({ title: 'Sucesso', message: 'Perfil atualizado com sucesso!' });
         } catch (error) {
             console.error("Falha ao atualizar perfil", error);
-            alert("Não foi possível atualizar o seu perfil.");
+            showNotification({ title: 'Erro', message: 'Não foi possível atualizar o seu perfil.' });
         }
     };
 
-    // ALTERAÇÃO AQUI: Função de formatação ajustada
     const formatDate = (dateString) => {
         if (!dateString) return 'Não disponível';
-
         const date = new Date(dateString);
-
         const datePart = date.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
         });
-
         const timePart = date.toLocaleTimeString('pt-BR', {
             hour: '2-digit',
             minute: '2-digit',
         });
-
         return `${datePart} às ${timePart}`;
     };
 

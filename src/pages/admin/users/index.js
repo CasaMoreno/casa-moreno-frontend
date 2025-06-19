@@ -1,15 +1,14 @@
-// src/pages/admin/users/index.js (VERSÃO COM FILTRO DE ADMIN)
-
-import { useState, useMemo } from 'react'; // Adicionado useMemo
+import { useState, useMemo } from 'react';
 import styled from 'styled-components';
+import Link from 'next/link'; // IMPORTADO
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 import UserEditModal from '@/components/admin/UserEditModal';
-import { useAuth } from '@/hooks/useAuth'; // NOVO: Importa o hook de autenticação
+import { useAuth } from '@/hooks/useAuth';
+import { useNotification } from '@/hooks/useNotification';
 
-// --- Estilos (não mudam) ---
 const PageContainer = styled.div`
   max-width: 1400px;
   margin: 2rem auto;
@@ -36,6 +35,13 @@ const UserTable = styled.table`
   th { 
       background-color: #f2f2f2; 
   }
+  td {
+      text-align: center;
+  }
+  th:first-child, td:first-child {
+      text-align: left;
+      padding-left: 20px;
+  }
 `;
 
 const ActionsContainer = styled.div`
@@ -52,30 +58,42 @@ const DeleteButton = styled(Button)`
   }
 `;
 
-// --- Componente da Página ---
+const EmptyStateCell = styled.td`
+  text-align: center !important;
+  padding: 3rem !important;
+  font-style: italic;
+  color: #666;
+`;
+
+
 const UsersManagementPage = ({ initialUsers }) => {
     const [users, setUsers] = useState(initialUsers);
     const [editingUser, setEditingUser] = useState(null);
-    const { user: loggedInAdmin } = useAuth(); // Pega o admin logado do contexto
+    const { user: loggedInAdmin } = useAuth();
+    const { showConfirmation, showNotification } = useNotification();
 
-    // NOVO: Filtra a lista de usuários para remover o admin logado
     const displayedUsers = useMemo(() => {
         if (!loggedInAdmin) {
-            return users; // Se o admin ainda não carregou, mostra todos temporariamente
+            return users;
         }
         return users.filter(user => user.userId !== loggedInAdmin.userId);
     }, [users, loggedInAdmin]);
 
 
-    const handleDeleteUser = async (userId, userName) => {
-        if (window.confirm(`Tem certeza que deseja deletar o usuário: "${userName}"?`)) {
-            try {
-                await apiClient.delete(`/users/delete?userId=${userId}`);
-                setUsers(users.filter(u => u.userId !== userId));
-            } catch (error) {
-                alert("Não foi possível deletar o usuário.");
+    const handleDeleteUser = (userId, userName) => {
+        showConfirmation({
+            title: 'Confirmar Exclusão',
+            message: `Tem certeza que deseja deletar o usuário: "${userName}"? Esta ação não pode ser desfeita.`,
+            onConfirm: async () => {
+                try {
+                    await apiClient.delete(`/users/delete?userId=${userId}`);
+                    setUsers(users.filter(u => u.userId !== userId));
+                    showNotification({ title: 'Sucesso', message: 'Usuário deletado com sucesso!' });
+                } catch (error) {
+                    showNotification({ title: 'Erro', message: 'Não foi possível deletar o usuário.' });
+                }
             }
-        }
+        });
     };
 
     const handleUpdateUser = async (userData) => {
@@ -83,8 +101,9 @@ const UsersManagementPage = ({ initialUsers }) => {
             const response = await apiClient.put('/users/update', userData);
             setUsers(users.map(u => u.userId === userData.userId ? response.data : u));
             setEditingUser(null);
+            showNotification({ title: 'Sucesso', message: 'Usuário atualizado com sucesso!' });
         } catch (error) {
-            alert("Não foi possível atualizar o usuário.");
+            showNotification({ title: 'Erro', message: 'Não foi possível atualizar o usuário.' });
         }
     };
 
@@ -100,6 +119,11 @@ const UsersManagementPage = ({ initialUsers }) => {
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Usuários</PageTitle>
+                    {/* INÍCIO DA ALTERAÇÃO */}
+                    <Link href="/admin" passHref>
+                        <Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button>
+                    </Link>
+                    {/* FIM DA ALTERAÇÃO */}
                 </PageHeader>
                 <UserTable>
                     <thead>
@@ -112,21 +136,28 @@ const UsersManagementPage = ({ initialUsers }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {/* ALTERAÇÃO AQUI: Mapeia sobre a lista filtrada */}
-                        {displayedUsers.map(user => (
-                            <tr key={user.userId}>
-                                <td>{user.name}</td>
-                                <td>{user.username}</td>
-                                <td>{user.email}</td>
-                                <td>{user.profile}</td>
-                                <td>
-                                    <ActionsContainer>
-                                        <Button onClick={() => setEditingUser(user)}>Editar</Button>
-                                        <DeleteButton onClick={() => handleDeleteUser(user.userId, user.name)}>Deletar</DeleteButton>
-                                    </ActionsContainer>
-                                </td>
+                        {displayedUsers.length > 0 ? (
+                            displayedUsers.map(user => (
+                                <tr key={user.userId}>
+                                    <td>{user.name}</td>
+                                    <td>{user.username}</td>
+                                    <td>{user.email}</td>
+                                    <td>{user.profile}</td>
+                                    <td>
+                                        <ActionsContainer>
+                                            <Button onClick={() => setEditingUser(user)}>Editar</Button>
+                                            <DeleteButton onClick={() => handleDeleteUser(user.userId, user.name)}>Deletar</DeleteButton>
+                                        </ActionsContainer>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <EmptyStateCell colSpan="5">
+                                    Nenhum outro usuário encontrado para gerenciar.
+                                </EmptyStateCell>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </UserTable>
             </PageContainer>

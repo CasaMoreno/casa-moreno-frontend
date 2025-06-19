@@ -1,5 +1,3 @@
-// src/pages/admin/products/index.js
-
 import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -8,6 +6,7 @@ import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
+import { useNotification } from '@/hooks/useNotification';
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -20,6 +19,12 @@ const PageHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+`;
+
+// NOVO: Container para agrupar os botões do cabeçalho
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 1rem;
 `;
 
 const PageTitle = styled.h1``;
@@ -116,6 +121,7 @@ const SwitchInput = styled.input`
 
 const ProductsManagementPage = ({ initialProducts }) => {
     const [products, setProducts] = useState(initialProducts);
+    const { showConfirmation, showNotification } = useNotification();
 
     const groupedAndSortedProducts = useMemo(() => {
         const grouped = products.reduce((acc, product) => {
@@ -137,15 +143,20 @@ const ProductsManagementPage = ({ initialProducts }) => {
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 
     const handleDelete = async (productId, productTitle) => {
-        if (window.confirm(`Tem certeza que deseja deletar o produto: "${productTitle}"?`)) {
-            try {
-                await apiClient.delete(`/products/delete/${productId}`);
-                setProducts(products.filter(p => p.productId !== productId));
-            } catch (error) {
-                console.error("Falha ao deletar o produto", error);
-                alert("Não foi possível deletar o produto.");
+        showConfirmation({
+            title: 'Confirmar Exclusão',
+            message: `Tem certeza que deseja deletar o produto: "${productTitle}"?`,
+            onConfirm: async () => {
+                try {
+                    await apiClient.delete(`/products/delete/${productId}`);
+                    setProducts(products.filter(p => p.productId !== productId));
+                    showNotification({ title: 'Sucesso', message: 'Produto deletado com sucesso!' });
+                } catch (error) {
+                    console.error("Falha ao deletar o produto", error);
+                    showNotification({ title: 'Erro', message: 'Não foi possível deletar o produto.' });
+                }
             }
-        }
+        });
     };
 
     const handlePromotionalToggle = async (productId, currentStatus) => {
@@ -158,7 +169,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
             );
         } catch (error) {
             console.error("Falha ao atualizar o status promocional", error);
-            alert("Não foi possível atualizar o status promocional do produto.");
+            showNotification({ title: 'Erro', message: 'Não foi possível atualizar o status promocional do produto.' });
         }
     };
 
@@ -167,9 +178,16 @@ const ProductsManagementPage = ({ initialProducts }) => {
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Produtos</PageTitle>
-                    <Link href="/admin/new-product">
-                        <Button>Adicionar Novo Produto</Button>
-                    </Link>
+                    {/* INÍCIO DA ALTERAÇÃO */}
+                    <HeaderActions>
+                        <Link href="/admin" passHref>
+                            <Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button>
+                        </Link>
+                        <Link href="/admin/new-product">
+                            <Button>Adicionar Novo Produto</Button>
+                        </Link>
+                    </HeaderActions>
+                    {/* FIM DA ALTERAÇÃO */}
                 </PageHeader>
 
                 {sortedCategories.map(category => (

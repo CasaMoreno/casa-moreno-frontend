@@ -1,8 +1,7 @@
-// src/pages/dashboard/index.js (VERSÃO COMPLETA E PROFISSIONAL)
-
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotification } from '@/hooks/useNotification';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import apiClient from '@/api/axios';
@@ -76,6 +75,7 @@ const UserDashboard = () => {
     const { user: authUser, loading: authLoading } = useAuth();
     const [userData, setUserData] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         if (authUser) {
@@ -92,10 +92,10 @@ const UserDashboard = () => {
             const response = await apiClient.put('/users/update', data);
             setUserData(response.data);
             setIsEditing(false);
-            alert('Perfil atualizado com sucesso!');
+            showNotification({ title: 'Sucesso', message: 'Perfil atualizado com sucesso!' });
         } catch (error) {
             console.error("Falha ao atualizar perfil", error);
-            alert("Não foi possível atualizar o perfil.");
+            showNotification({ title: 'Erro', message: 'Não foi possível atualizar o perfil.' });
         }
     };
 

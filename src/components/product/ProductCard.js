@@ -1,10 +1,9 @@
-// src/components/product/ProductCard.js (VERSÃO COM OVERLAY AJUSTADO)
-
 import styled from 'styled-components';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotification } from '@/hooks/useNotification';
 import apiClient from '@/api/axios';
 import Button from '../common/Button';
 
@@ -82,7 +81,6 @@ const CardContent = styled.div`
   }
 `;
 
-// NOVO: Mensagem de sobreposição (agora é uma div)
 const LoginOverlay = styled.div`
   position: absolute;
   top: 0;
@@ -107,7 +105,6 @@ const PriceWrapper = styled.div`
   position: relative;
   margin-bottom: 1rem;
 
-  /* Faz o overlay aparecer quando o mouse está sobre o wrapper */
   &:hover ${LoginOverlay} {
       opacity: 1;
   }
@@ -128,11 +125,10 @@ const Price = styled.p`
   `}
 `;
 
-// NOVO: Estilos para o texto e os links no overlay
 const OverlayText = styled.p`
   margin: 2px 0;
-  font-size: 0.8rem; /* Letra menor */
-  font-family: 'Verdana', sans-serif; /* Fonte diferente */
+  font-size: 0.8rem;
+  font-family: 'Verdana', sans-serif;
   font-weight: normal;
 `;
 
@@ -159,21 +155,26 @@ const ConditionBadge = styled.span`
 const ProductCard = ({ product }) => {
   const { user } = useAuth();
   const router = useRouter();
+  const { showConfirmation, showNotification } = useNotification();
 
   const { productTitle, currentPrice, galleryImageUrls, affiliateLink, productCondition, productId } = product;
   const imageUrl = galleryImageUrls && galleryImageUrls.length > 0 ? galleryImageUrls[0] : '/placeholder.png';
 
   const handleDelete = async () => {
-    if (window.confirm(`Tem certeza que deseja deletar o produto: "${productTitle}"?`)) {
-      try {
-        await apiClient.delete(`/products/delete/${productId}`);
-        alert('Produto deletado com sucesso!');
-        router.reload();
-      } catch (error) {
-        console.error("Falha ao deletar o produto", error);
-        alert("Não foi possível deletar o produto.");
+    showConfirmation({
+      title: 'Confirmar Exclusão',
+      message: `Tem certeza que deseja deletar o produto: "${productTitle}"?`,
+      onConfirm: async () => {
+        try {
+          await apiClient.delete(`/products/delete/${productId}`);
+          showNotification({ title: 'Sucesso', message: 'Produto deletado com sucesso!' });
+          router.reload();
+        } catch (error) {
+          console.error("Falha ao deletar o produto", error);
+          showNotification({ title: 'Erro', message: 'Não foi possível deletar o produto.' });
+        }
       }
-    }
+    });
   };
 
   return (
