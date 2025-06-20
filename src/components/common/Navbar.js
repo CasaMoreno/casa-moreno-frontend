@@ -1,5 +1,3 @@
-// src/components/common/Navbar.js (VERSÃO ATUALIZADA)
-
 import Link from 'next/link';
 import styled, { css } from 'styled-components';
 import { useRouter } from 'next/router';
@@ -7,6 +5,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect, useRef } from 'react';
 import apiClient from '@/api/axios';
 
+// --- Ícones SVG para o Menu ---
+const PanelIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
+  </svg>
+);
+const LogoutIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
+
+// --- Componentes Estilizados ---
 const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
@@ -15,23 +27,33 @@ const Nav = styled.nav`
   background: ${({ theme }) => theme.colors.gradient};
   color: ${({ theme }) => theme.colors.white};
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 0 0 20px 20px;
+  position: relative;
+  z-index: 1100;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 0.75rem 1rem;
+  }
 `;
 
 const LogoText = styled.span`
   font-family: 'Pacifico', cursive;
   font-size: 1.5rem;
   font-weight: 400;
+  color: white;
 `;
 
 const LogoTextLink = styled.a`
   padding: 8px 16px;
+  cursor: pointer;
 `;
 
-const LinksContainer = styled.div`
+const DesktopLinksContainer = styled.div`
   display: flex;
   gap: 1rem;
   align-items: center;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} { display: none; }
+  @media ${({ theme }) => theme.breakpoints.tablet} { display: none; }
 `;
 
 const StyledLink = styled.a`
@@ -41,7 +63,7 @@ const StyledLink = styled.a`
   cursor: pointer;
   text-decoration: none;
   transition: color 0.3s ease-out;
-  color: ${({ isActive }) => (isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
+  color: ${({ isActive, inMobileMenu }) => (isActive && !inMobileMenu ? 'white' : 'rgba(255, 255, 255, 0.7)')};
   font-size: ${({ isActive }) => (isActive ? '1.05rem' : '1rem')};
 
   &::after {
@@ -52,172 +74,265 @@ const StyledLink = styled.a`
     width: 100%;
     height: 1px;
     background-color: rgba(255, 255, 255, 0.7);
-    transform-origin: center;
-    transition: transform 0.3s ease-out;
     transform: scaleX(0);
+    transition: transform 0.3s ease-out;
   }
 
-  ${({ isActive }) => !isActive && css`
-    &:hover::after {
-      transform: scaleX(1);
-    }
+  ${({ isActive, inMobileMenu }) => !isActive && !inMobileMenu && css`
+    &:hover::after { transform: scaleX(1); }
   `}
 `;
 
-// --- NOVOS ESTILOS PARA O DROPDOWN DO USUÁRIO ---
 const UserMenuContainer = styled.div`
   position: relative;
 `;
 
 const UserMenuButton = styled.button`
-  background: none;
-  border: none;
-  color: white;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 8px 4px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.9);
-  }
+  background: none; border: none; color: white;
+  font-weight: bold; font-size: 1rem; cursor: pointer;
+  padding: 8px 4px; display: flex; align-items: center; gap: 0.5rem;
+  &:hover { color: rgba(255, 255, 255, 0.9); }
 `;
 
 const DropdownMenu = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
+  position: absolute; top: 100%; right: 0;
   background-color: white;
   border-radius: ${({ theme }) => theme.borderRadius};
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  padding: 0.5rem 0;
-  z-index: 1001;
-  width: 180px;
+  padding: 0.5rem 0; z-index: 1001; width: 180px;
   display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
 `;
 
 const DropdownItem = styled.a`
-  display: block;
-  padding: 0.75rem 1rem;
+  display: block; padding: 0.75rem 1rem;
   color: ${({ theme }) => theme.colors.darkGray};
-  cursor: pointer;
-  font-weight: normal;
+  cursor: pointer; font-weight: normal;
+  &:hover { background-color: ${({ theme }) => theme.colors.lightGray}; }
+`;
 
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.lightGray};
+const HamburgerButton = styled.button`
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 10px; z-index: 1200; position: relative; width: 45px; height: 45px;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} { display: block; }
+  @media ${({ theme }) => theme.breakpoints.tablet} { display: block; }
+
+  span {
+    display: block; width: 25px; height: 3px;
+    background-color: white; margin: 5px auto;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    
+    ${({ isOpen }) => isOpen && css`
+      &:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+      &:nth-child(2) { opacity: 0; }
+      &:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    `}
   }
 `;
-// --- FIM DOS NOVOS ESTILOS ---
+
+const MobileMenu = styled.div`
+  display: flex; flex-direction: column;
+  position: fixed; top: 0;
+  right: ${({ isOpen }) => (isOpen ? '0' : '-100%')};
+  width: 80%; max-width: 320px; height: 100vh;
+  background: linear-gradient(to bottom, #2A4A87, #4c3a8a);
+  padding: 1.5rem;
+  transition: right 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+
+  & > * {
+    opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
+    transition: opacity 0.3s ease-in-out 0.2s;
+  }
+`;
+
+const Backdrop = styled.div`
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1099;
+  opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
+  visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+`;
+
+const MenuHeader = styled.div`
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0 2rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+`;
+
+const UserGreeting = styled.p`
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.5rem;
+`;
+
+const MenuSection = styled.div`
+  width: 100%;
+  margin-top: 1rem;
+  h4 {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+  }
+`;
+
+const MenuLink = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+
+  &:hover, &.active {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+  }
+`;
+
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [userData, setUserData] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const menuRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await apiClient.get('/products/categories');
-        setCategories(response.data);
-      } catch (error) {
-        console.error("Falha ao buscar categorias:", error);
-      }
-    };
-    fetchCategories();
+    apiClient.get('/products/categories').then(res => setCategories(res.data)).catch(console.error);
   }, []);
 
   useEffect(() => {
-    // Busca os dados completos do usuário quando o authUser for carregado
     if (user) {
-      apiClient.get(`/users/username?username=${user.username}`)
-        .then(response => {
-          setUserData(response.data);
-        })
-        .catch(error => console.error("Falha ao buscar dados do usuário na navbar", error));
+      apiClient.get(`/users/username?username=${user.username}`).then(res => setUserData(res.data)).catch(console.error);
     } else {
       setUserData(null);
     }
   }, [user]);
 
-  // Fecha o menu ao clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getFirstName = () => {
-    if (!userData || !userData.name) return '';
-    return userData.name.split(' ')[0];
-  };
+  useEffect(() => {
+    const handleRouteChange = () => setIsMobileMenuOpen(false);
+    router.events.on('routeChangeComplete', handleRouteChange);
+    return () => router.events.off('routeChangeComplete', handleRouteChange);
+  }, [router.events]);
 
-  const getDashboardPath = () => {
-    if (!user) return '/';
-    return user.scope === 'ADMIN' ? '/admin' : '/dashboard';
+  const getFirstName = () => userData?.name?.split(' ')[0] || '';
+  const getDashboardPath = () => user?.scope === 'ADMIN' ? '/admin' : '/dashboard';
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
   };
 
   return (
-    <Nav>
-      <Link href="/" passHref legacyBehavior>
-        <LogoTextLink>
-          <LogoText>Casa Moreno</LogoText>
-        </LogoTextLink>
-      </Link>
+    <>
+      <Backdrop isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(false)} />
+      <Nav>
+        <Link href="/" passHref legacyBehavior><LogoTextLink><LogoText>Casa Moreno</LogoText></LogoTextLink></Link>
 
-      <LinksContainer>
-        {categories.map(category => {
-          const categoryPath = `/products/${category.toLowerCase()}`;
-          return (
-            <Link key={category} href={categoryPath} passHref legacyBehavior>
-              <StyledLink isActive={decodeURIComponent(router.asPath).startsWith(categoryPath)}>
+        <DesktopLinksContainer>
+          {categories.map(category => (
+            <Link key={category} href={`/products/${category.toLowerCase()}`} passHref legacyBehavior>
+              <StyledLink isActive={decodeURIComponent(router.asPath).startsWith(`/products/${category.toLowerCase()}`)}>
                 {category}
               </StyledLink>
             </Link>
-          );
-        })}
-      </LinksContainer>
+          ))}
+        </DesktopLinksContainer>
 
-      <LinksContainer>
-        {user ? (
-          <UserMenuContainer ref={menuRef}>
-            <UserMenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              Olá, {getFirstName()} ▼
-            </UserMenuButton>
-            <DropdownMenu isOpen={isMenuOpen}>
-              <Link href={getDashboardPath()} passHref legacyBehavior>
-                <DropdownItem onClick={() => setIsMenuOpen(false)}>Meu Painel</DropdownItem>
-              </Link>
-              <DropdownItem onClick={() => { logout(); setIsMenuOpen(false); }}>
-                Sair
-              </DropdownItem>
-            </DropdownMenu>
-          </UserMenuContainer>
-        ) : (
-          <>
-            <Link href="/auth/login" passHref legacyBehavior>
-              <StyledLink isActive={router.pathname === '/auth/login'}>
-                Login
-              </StyledLink>
-            </Link>
-            <Link href="/auth/register" passHref legacyBehavior>
-              <StyledLink isActive={router.pathname === '/auth/register'}>
-                Cadastre-se
-              </StyledLink>
-            </Link>
-          </>
-        )}
-      </LinksContainer>
-    </Nav>
+        <DesktopLinksContainer>
+          {user ? (
+            <UserMenuContainer ref={userMenuRef}>
+              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {getFirstName()} ▼</UserMenuButton>
+              <DropdownMenu isOpen={isUserMenuOpen}>
+                <Link href={getDashboardPath()} passHref legacyBehavior><DropdownItem onClick={() => setIsUserMenuOpen(false)}>Meu Painel</DropdownItem></Link>
+                <DropdownItem onClick={handleLogout}>Sair</DropdownItem>
+              </DropdownMenu>
+            </UserMenuContainer>
+          ) : (
+            <>
+              <Link href="/auth/login" passHref legacyBehavior><StyledLink isActive={router.pathname === '/auth/login'}>Login</StyledLink></Link>
+              <Link href="/auth/register" passHref legacyBehavior><StyledLink isActive={router.pathname === '/auth/register'}>Cadastre-se</StyledLink></Link>
+            </>
+          )}
+        </DesktopLinksContainer>
+
+        <HamburgerButton isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <span /><span /><span />
+        </HamburgerButton>
+
+        <MobileMenu isOpen={isMobileMenuOpen}>
+          <MenuHeader>
+            <LogoText>Casa Moreno</LogoText>
+            {user && <UserGreeting>Olá, {getFirstName()}</UserGreeting>}
+          </MenuHeader>
+
+          <MenuSection>
+            <h4>Categorias</h4>
+            {categories.map(category => {
+              const path = `/products/${category.toLowerCase()}`;
+              return (
+                <Link key={`mobile-${category}`} href={path} passHref legacyBehavior>
+                  <MenuLink className={decodeURIComponent(router.asPath).startsWith(path) ? 'active' : ''}>
+                    {category}
+                  </MenuLink>
+                </Link>
+              );
+            })}
+          </MenuSection>
+
+          <MenuSection>
+            <h4>Conta</h4>
+            {user ? (
+              <>
+                <Link href={getDashboardPath()} passHref legacyBehavior>
+                  <MenuLink className={router.asPath === getDashboardPath() ? 'active' : ''}>
+                    <PanelIcon />
+                    <span>Meu Painel</span>
+                  </MenuLink>
+                </Link>
+                <MenuLink as="button" onClick={handleLogout}>
+                  <LogoutIcon />
+                  <span>Sair</span>
+                </MenuLink>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" passHref legacyBehavior><MenuLink className={router.pathname === '/auth/login' ? 'active' : ''}>Login</MenuLink></Link>
+                <Link href="/auth/register" passHref legacyBehavior><MenuLink className={router.pathname === '/auth/register' ? 'active' : ''}>Cadastre-se</MenuLink></Link>
+              </>
+            )}
+          </MenuSection>
+        </MobileMenu>
+      </Nav>
+    </>
   );
 };
 

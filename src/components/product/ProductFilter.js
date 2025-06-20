@@ -1,5 +1,3 @@
-// src/components/product/ProductFilter.js (VERSÃO COM FILTRO DE CONDIÇÃO)
-
 import styled from 'styled-components';
 
 const FilterContainer = styled.aside`
@@ -12,6 +10,17 @@ const FilterContainer = styled.aside`
 
   h3 {
     margin-bottom: 2rem; 
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    max-width: 100%;
+    width: 100%;
+    margin-right: 0;
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
   }
 `;
 
@@ -86,7 +95,6 @@ const ProductFilter = ({
         ))}
       </FilterGroup>
 
-      {/* NOVO: Grupo de filtro de condição */}
       <FilterGroup>
         <h4>Condição</h4>
         {conditions.map(condition => (

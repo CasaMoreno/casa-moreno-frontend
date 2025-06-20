@@ -1,5 +1,3 @@
-// src/pages/offers.js
-
 import styled from 'styled-components';
 import Head from 'next/head';
 import Layout from '@/components/layout/Layout';
@@ -8,6 +6,13 @@ import ProductCard from '@/components/product/ProductCard';
 
 const OffersContainer = styled.div`
   padding: 2rem 4rem;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1rem;
+  }
+  @media ${({ theme }) => theme.breakpoints.tablet} {
+    padding: 2rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -15,6 +20,10 @@ const SectionTitle = styled.h2`
   margin-bottom: 3rem;
   text-align: center;
   color: ${({ theme }) => theme.colors.darkGray};
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 2rem;
+  }
 `;
 
 const ProductGrid = styled.div`

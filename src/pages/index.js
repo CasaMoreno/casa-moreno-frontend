@@ -1,13 +1,10 @@
-// src/pages/index.js (VERSÃO COM CARROSSEL DE OFERTAS)
-
 import styled from 'styled-components';
 import Link from 'next/link';
 import Head from 'next/head';
 import Layout from '@/components/layout/Layout';
 import apiClient from '@/api/axios';
-import ProductCard from '@/components/product/ProductCard';
+import Carousel from '@/components/common/Carousel';
 import Button from '@/components/common/Button';
-import Carousel from '@/components/common/Carousel'; // NOVO: Importa o carrossel
 
 const HeroSection = styled.section`
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/hero-banner.png');
@@ -33,6 +30,16 @@ const HeroSection = styled.section`
     max-width: 600px;
     margin-bottom: 2rem;
   }
+  
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 4rem 1rem;
+    h1 {
+      font-size: 2.5rem;
+    }
+    p {
+      font-size: 1rem;
+    }
+  }
 `;
 
 const HeroButton = styled(Button)`
@@ -44,12 +51,20 @@ const HeroButton = styled(Button)`
 const Section = styled.section`
   padding: 4rem 2rem;
   text-align: center;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2.5rem 1rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 2.5rem;
   margin-bottom: 3rem;
   color: ${({ theme }) => theme.colors.darkGray};
+  
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 2rem;
+  }
 `;
 
 const CategoryGrid = styled.div`
@@ -58,6 +73,10 @@ const CategoryGrid = styled.div`
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    gap: 1rem;
+  }
 `;
 
 const CategoryCard = styled.div`
@@ -75,6 +94,11 @@ const CategoryCard = styled.div`
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 1.2rem;
+    padding: 1.5rem;
+  }
 `;
 
 const ValuePropsContainer = styled.section`
@@ -84,6 +108,13 @@ const ValuePropsContainer = styled.section`
   padding: 3rem 2rem;
   text-align: center;
   flex-wrap: wrap;
+  gap: 2rem;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1rem;
+  }
 `;
 
 const ValueProp = styled.div`
@@ -120,7 +151,6 @@ const HomePage = ({ promotionalProducts, categories }) => {
         </CategoryGrid>
       </Section>
 
-      {/* SEÇÃO DE DESTAQUES MODIFICADA */}
       <Section style={{ backgroundColor: '#f9f9f9' }}>
         <SectionTitle>Nossas Ofertas</SectionTitle>
         <Carousel products={promotionalProducts} />
@@ -144,22 +174,17 @@ const HomePage = ({ promotionalProducts, categories }) => {
   );
 };
 
-// LÓGICA DE BUSCA DE DADOS ATUALIZADA
 export async function getServerSideProps() {
   try {
-    // Busca as categorias e as ofertas em paralelo para mais eficiência
     const [categoriesRes, promotionalRes] = await Promise.all([
       apiClient.get('/products/categories'),
       apiClient.get('/products/promotional')
     ]);
 
-    const categories = categoriesRes.data;
-    const promotionalProducts = promotionalRes.data;
-
     return {
       props: {
-        promotionalProducts,
-        categories
+        promotionalProducts: promotionalRes.data,
+        categories: categoriesRes.data
       },
     };
   } catch (error) {

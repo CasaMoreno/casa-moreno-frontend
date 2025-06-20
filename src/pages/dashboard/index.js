@@ -12,6 +12,11 @@ const DashboardContainer = styled.div`
   max-width: 900px;
   margin: 2rem auto;
   padding: 2rem;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
 `;
 
 const Title = styled.h1`
@@ -29,6 +34,12 @@ const ProfileCard = styled.div`
   display: flex;
   align-items: center;
   gap: 2.5rem;
+  
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
 `;
 
 const Avatar = styled.div`
@@ -47,6 +58,7 @@ const Avatar = styled.div`
 
 const ProfileContent = styled.div`
     flex-grow: 1;
+    width: 100%; // Garante que o conteúdo ocupe o espaço no modo coluna
 `;
 
 const ProfileHeader = styled.div`
@@ -58,16 +70,35 @@ const ProfileHeader = styled.div`
     margin: 0;
     font-size: 1.8rem;
   }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    h2 {
+        font-size: 1.5rem;
+    }
+  }
 `;
 
 const ProfileInfo = styled.div`
   display: grid;
-  /* Ajusta a coluna do label para caber os textos maiores */
   grid-template-columns: 160px 1fr;
   gap: 0.8rem;
   font-size: 1.1rem;
   strong { text-align: right; color: #666; }
-  p { margin: 0; }
+  p { margin: 0; word-break: break-all; }
+  
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    grid-template-columns: 1fr;
+    text-align: center;
+    font-size: 1rem;
+    gap: 1rem;
+    strong {
+      text-align: center;
+      margin-bottom: -0.5rem;
+    }
+  }
 `;
 
 
@@ -80,9 +111,7 @@ const UserDashboard = () => {
     useEffect(() => {
         if (authUser) {
             apiClient.get(`/users/username?username=${authUser.username}`)
-                .then(response => {
-                    setUserData(response.data);
-                })
+                .then(response => setUserData(response.data))
                 .catch(error => console.error("Falha ao buscar dados do usuário", error));
         }
     }, [authUser]);
@@ -94,29 +123,14 @@ const UserDashboard = () => {
             setIsEditing(false);
             showNotification({ title: 'Sucesso', message: 'Perfil atualizado com sucesso!' });
         } catch (error) {
-            console.error("Falha ao atualizar perfil", error);
             showNotification({ title: 'Erro', message: 'Não foi possível atualizar o perfil.' });
         }
     };
 
-    // Função para formatar a data no padrão dd/mm/yyyy às hh:mm
     const formatDate = (dateString) => {
         if (!dateString) return 'Não disponível';
-
         const date = new Date(dateString);
-
-        const datePart = date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
-
-        const timePart = date.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-
-        return `${datePart} às ${timePart}`;
+        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
     if (authLoading || !userData) {
@@ -142,7 +156,6 @@ const UserDashboard = () => {
                             <h2>Meus Dados</h2>
                             <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
                         </ProfileHeader>
-                        {/* LISTA COMPLETA DE INFORMAÇÕES */}
                         <ProfileInfo>
                             <strong>Nome:</strong><p>{userData.name}</p>
                             <strong>Username:</strong><p>{userData.username}</p>

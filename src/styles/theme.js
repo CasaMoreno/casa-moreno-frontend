@@ -17,4 +17,9 @@ export const theme = {
     large: '24px',
   },
   borderRadius: '5px',
+  // NOVO: Breakpoints para responsividade
+  breakpoints: {
+    mobile: 'screen and (max-width: 767px)',
+    tablet: 'screen and (min-width: 768px) and (max-width: 1023px)',
+  },
 };
