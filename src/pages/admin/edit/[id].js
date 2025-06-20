@@ -1,10 +1,8 @@
-// src/pages/admin/edit/[id].js (VERSÃO COM MINIATURA DA IMAGEM)
-
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Link from 'next/link';
-import Image from 'next/image'; // NOVO: Importa o componente de imagem
+import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
@@ -22,7 +20,6 @@ const EditPageContainer = styled.div`
   h1 { text-align: center; margin-bottom: 1rem; }
 `;
 
-// NOVO: Estilo para o contêiner da miniatura
 const ThumbnailContainer = styled.div`
   width: 150px;
   height: 150px;
@@ -30,7 +27,7 @@ const ThumbnailContainer = styled.div`
   border-radius: 5px;
   overflow: hidden;
   border: 1px solid #ddd;
-  margin: 0 auto 2rem auto; /* Centraliza a miniatura */
+  margin: 0 auto 2rem auto;
   background-color: #f9f9f9;
 `;
 
@@ -73,7 +70,6 @@ const EditProductPage = ({ product }) => {
     const router = useRouter();
     const [isPromotional, setIsPromotional] = useState(product.isPromotional || false);
 
-    // Pega a URL da imagem principal ou um placeholder
     const imageUrl = product.galleryImageUrls && product.galleryImageUrls.length > 0
         ? product.galleryImageUrls[0]
         : '/placeholder.png';
@@ -101,7 +97,7 @@ const EditProductPage = ({ product }) => {
 
         try {
             await apiClient.put('/products/update', formData);
-            router.push('/admin');
+            router.push('/admin/products');
         } catch (err) {
             setError('Falha ao atualizar o produto.');
             console.error(err);
@@ -115,7 +111,6 @@ const EditProductPage = ({ product }) => {
             <EditPageContainer>
                 <h1>Editar Produto</h1>
 
-                {/* NOVO: Miniatura da imagem do produto */}
                 <ThumbnailContainer>
                     <Image
                         src={imageUrl}
@@ -161,7 +156,7 @@ const EditProductPage = ({ product }) => {
                     </CheckboxContainer>
 
                     <ButtonContainer>
-                        <Link href="/admin" passHref>
+                        <Link href="/admin/products" passHref>
                             <CancelButton as="a">Voltar</CancelButton>
                         </Link>
                         <Button type="submit" disabled={isSubmitting}>

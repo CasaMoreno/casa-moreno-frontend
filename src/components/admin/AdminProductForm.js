@@ -34,7 +34,8 @@ const AdminProductForm = () => {
 
         try {
             await apiClient.post('/products/create', productData);
-            router.push('/admin');
+            // ALTERAÇÃO AQUI: Redireciona para a página de gerenciamento de produtos
+            router.push('/admin/products');
         } catch (err) {
             setError('Falha ao criar o produto. Verifique a URL e tente novamente.');
             console.error(err);
