@@ -21,7 +21,6 @@ const PageHeader = styled.div`
   margin-bottom: 2rem;
 `;
 
-// NOVO: Container para agrupar os botões do cabeçalho
 const HeaderActions = styled.div`
   display: flex;
   gap: 1rem;
@@ -178,7 +177,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Produtos</PageTitle>
-                    {/* INÍCIO DA ALTERAÇÃO */}
                     <HeaderActions>
                         <Link href="/admin" passHref>
                             <Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button>
@@ -187,7 +185,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
                             <Button>Adicionar Novo Produto</Button>
                         </Link>
                     </HeaderActions>
-                    {/* FIM DA ALTERAÇÃO */}
                 </PageHeader>
 
                 {sortedCategories.map(category => (
@@ -207,15 +204,23 @@ const ProductsManagementPage = ({ initialProducts }) => {
                             <tbody>
                                 {groupedAndSortedProducts[category].map(product => (
                                     <tr key={product.productId}>
+                                        {/* INÍCIO DA ALTERAÇÃO */}
                                         <td>
-                                            <Image
-                                                src={product.galleryImageUrls?.[0] || '/placeholder.png'}
-                                                alt={`Imagem de ${product.productTitle}`}
-                                                width={60}
-                                                height={60}
-                                                style={{ objectFit: 'contain', margin: 'auto' }}
-                                            />
+                                            <Link href={`/product/${product.productId}`} target="_blank">
+                                                <Image
+                                                    src={product.galleryImageUrls?.[0] || '/placeholder.png'}
+                                                    alt={`Imagem de ${product.productTitle}`}
+                                                    width={60}
+                                                    height={60}
+                                                    style={{
+                                                        objectFit: 'contain',
+                                                        margin: 'auto',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                />
+                                            </Link>
                                         </td>
+                                        {/* FIM DA ALTERAÇÃO */}
                                         <td>{product.productTitle}</td>
                                         <td>{product.productBrand}</td>
                                         <td>R$ {product.currentPrice?.toFixed(2)}</td>
