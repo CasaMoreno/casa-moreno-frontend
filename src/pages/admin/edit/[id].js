@@ -54,6 +54,21 @@ const StyledSelect = styled.select`
   background-color: white;
 `;
 
+// --- INÍCIO DA ALTERAÇÃO ---
+const StyledTextarea = styled.textarea`
+  width: 100%;
+  height: 300px; /* Altura aumentada */
+  min-height: 250px; /* Altura aumentada */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 1rem;
+`;
+// --- FIM DA ALTERAÇÃO ---
+
 const CheckboxContainer = styled.label`
   display: flex;
   align-items: center;
@@ -145,6 +160,14 @@ const EditProductPage = ({ product }) => {
 
                     <label>Link Afiliado</label>
                     <Input name="affiliateLink" value={formData.affiliateLink || ''} onChange={handleChange} />
+
+                    <label>Descrição Completa</label>
+                    <StyledTextarea
+                        name="fullDescription"
+                        value={formData.fullDescription || ''}
+                        onChange={handleChange}
+                        placeholder="Descreva os detalhes do produto..."
+                    />
 
                     <CheckboxContainer>
                         <input
