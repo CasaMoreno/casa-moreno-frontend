@@ -9,13 +9,33 @@ import apiClient from '@/api/axios';
 import Button from '@/components/common/Button';
 import { useAuth } from '@/hooks/useAuth';
 
-// --- STYLED COMPONENTS (não mudam) ---
+const EditIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ marginRight: '8px' }}
+    >
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+);
+
+
+// --- STYLED COMPONENTS ---
 
 const PageWrapper = styled.div`
   background-color: #f9f9f9;
   padding: 2rem 1rem;
 `;
 
+// --- INÍCIO DA ALTERAÇÃO ---
 const ProductPageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -23,7 +43,28 @@ const ProductPageContainer = styled.div`
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  position: relative; /* Adicionado para posicionar o botão de editar */
 `;
+
+const AdminActionWrapper = styled.div`
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+`;
+
+const AdminEditButton = styled(Button)`
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  background-color: ${({ theme }) => theme.colors.darkGray};
+  flex-shrink: 0;
+  transition: background-color 0.2s ease-in-out;
+
+  &:hover {
+    background-color: #555;
+  }
+`;
+// --- FIM DA ALTERAÇÃO ---
 
 const Breadcrumbs = styled.div`
   margin-bottom: 2rem;
@@ -99,6 +140,7 @@ const ProductTitle = styled.h1`
   line-height: 1.3;
   margin: 0 0 0.5rem 0;
   color: ${({ theme }) => theme.colors.darkGray};
+  padding-right: 180px; /* Adiciona espaço para não ficar embaixo do botão */
 `;
 
 const SubtitleInfo = styled.p`
@@ -200,6 +242,18 @@ const ProductDetailPage = ({ product, error }) => {
             </Head>
             <PageWrapper>
                 <ProductPageContainer>
+                    {/* Botão de editar movido para cá */}
+                    {user && user.scope === 'ADMIN' && (
+                        <AdminActionWrapper>
+                            <Link href={`/admin/edit/${product.productId}`} passHref>
+                                <AdminEditButton as="a">
+                                    <EditIcon />
+                                    Editar Produto
+                                </AdminEditButton>
+                            </Link>
+                        </AdminActionWrapper>
+                    )}
+
                     <Breadcrumbs>
                         <Link href="/">Home</Link>
                         {product.productCategory && <><span>&gt;</span><Link href={`/products/${product.productCategory.toLowerCase()}`}>{product.productCategory}</Link></>}
@@ -222,6 +276,7 @@ const ProductDetailPage = ({ product, error }) => {
 
                         <DetailsColumn>
                             <ProductTitle>{product.productTitle}</ProductTitle>
+
                             <SubtitleInfo>
                                 Marca: <strong>{product.productBrand || 'N/A'}</strong> |
                                 Condição: <strong>{product.productCondition || 'N/A'}</strong>
@@ -268,9 +323,7 @@ const ProductDetailPage = ({ product, error }) => {
 export async function getServerSideProps(context) {
     const { id } = context.params;
     try {
-        // INÍCIO DA CORREÇÃO
         const response = await apiClient.get(`/products/${id}`);
-        // FIM DA CORREÇÃO
         return {
             props: { product: response.data },
         };
