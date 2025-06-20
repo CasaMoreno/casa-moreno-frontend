@@ -14,21 +14,48 @@ const Card = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #fff;
-  padding: 1rem;
-  overflow: hidden;
+  overflow: hidden; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative; 
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
 `;
+
+const PromoRibbon = styled.div`
+  position: absolute;
+  top: 12px;
+  left: -34px;
+  transform: rotate(-45deg);
+  width: 130px;
+  padding: 3px 0;
+  background-color: #ffc107;
+  color: #333;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  z-index: 6;
+`;
+
 
 const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
+  padding: 1rem 1rem 0 1rem;
   min-height: 28px;
 `;
 
 const AdminActions = styled.div`
   display: flex;
   gap: 0.5rem;
+  z-index: 10;
+  position: relative;
 `;
 
 const AdminButton = styled(Button)`
@@ -50,35 +77,23 @@ const ImageWrapper = styled.div`
   width: 100%;
   height: 200px;
   position: relative;
+  padding: 0.5rem;
 `;
-
-const PromotionBanner = styled.div`
-  background-color: #ffc107;
-  color: #333; 
-  text-align: center;
-  padding: 4px 8px;
-  margin-top: 1rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-  border-radius: 3px;
-`;
-
 
 const CardContent = styled.div`
-  padding-top: 1rem;
+  padding: 1rem;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   text-align: center;
-  
-  h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem; 
-    height: 44px;
-    overflow: hidden;
-  }
+`;
+
+const ProductTitle = styled.h3`
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem; 
+  height: 44px;
+  overflow: hidden;
+  color: ${({ theme }) => theme.colors.darkGray};
 `;
 
 const LoginOverlay = styled.div`
@@ -91,23 +106,22 @@ const LoginOverlay = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #333;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(1px);
+  color: ${({ theme }) => theme.colors.darkGray};
   text-align: center;
   border-radius: 4px;
-  cursor: default;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  cursor: pointer;
   padding: 5px;
+  z-index: 5;
+  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  transition: opacity 0.3s ease;
+  pointer-events: ${({ isVisible }) => (isVisible ? 'auto' : 'none')};
 `;
 
 const PriceWrapper = styled.div`
   position: relative;
   margin-bottom: 1rem;
-
-  &:hover ${LoginOverlay} {
-      opacity: 1;
-  }
 `;
 
 const Price = styled.p`
@@ -120,9 +134,14 @@ const Price = styled.p`
   ${({ isBlurred }) => isBlurred && `
     filter: blur(5px);
     -webkit-filter: blur(5px);
-    user-select: none;
-    pointer-events: none;
   `}
+`;
+
+const ActionWrapper = styled.div`
+  margin-top: auto;
+  padding-top: 1rem;
+  z-index: 10;
+  position: relative;
 `;
 
 const OverlayText = styled.p`
@@ -132,14 +151,13 @@ const OverlayText = styled.p`
   font-weight: normal;
 `;
 
-const OverlayLink = styled.a`
+const OverlayLink = styled.span`
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primaryBlue};
   text-decoration: underline;
   cursor: pointer;
   margin: 0 4px;
 `;
-
 
 const ConditionBadge = styled.span`
   display: inline-block;
@@ -151,16 +169,28 @@ const ConditionBadge = styled.span`
   font-weight: bold;
 `;
 
+const ProductLink = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+`;
 
 const ProductCard = ({ product }) => {
   const { user } = useAuth();
   const router = useRouter();
   const { showConfirmation, showNotification } = useNotification();
 
-  const { productTitle, currentPrice, galleryImageUrls, affiliateLink, productCondition, productId } = product;
+  const { productTitle, currentPrice, galleryImageUrls, productCondition, productId } = product;
   const imageUrl = galleryImageUrls && galleryImageUrls.length > 0 ? galleryImageUrls[0] : '/placeholder.png';
 
-  const handleDelete = async () => {
+  const linkHref = user ? `/product/${product.productId}` : '/auth/login';
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     showConfirmation({
       title: 'Confirmar Exclusão',
       message: `Tem certeza que deseja deletar o produto: "${productTitle}"?`,
@@ -170,29 +200,31 @@ const ProductCard = ({ product }) => {
           showNotification({ title: 'Sucesso', message: 'Produto deletado com sucesso!' });
           router.reload();
         } catch (error) {
-          console.error("Falha ao deletar o produto", error);
           showNotification({ title: 'Erro', message: 'Não foi possível deletar o produto.' });
         }
       }
     });
   };
 
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    router.push(`/admin/edit/${product.productId}`);
+  };
+
   return (
     <Card>
+      {product.isPromotional && <PromoRibbon>Promo</PromoRibbon>}
+
       <CardHeader>
         {user && user.scope === 'ADMIN' ? (
           <AdminActions>
-            <Link href={`/admin/edit/${product.productId}`} passHref legacyBehavior>
-              <EditButton as="a">Editar</EditButton>
-            </Link>
-            <DeleteButton onClick={handleDelete}>
-              Deletar
-            </DeleteButton>
+            <EditButton onClick={handleEditClick}>Editar</EditButton>
+            <DeleteButton onClick={handleDelete}>Deletar</DeleteButton>
           </AdminActions>
         ) : (
           <div />
         )}
-
         {productCondition && (
           <ConditionBadge condition={productCondition}>
             {productCondition}
@@ -200,41 +232,45 @@ const ProductCard = ({ product }) => {
         )}
       </CardHeader>
 
-      <ImageWrapper>
-        <Image src={imageUrl} alt={productTitle} fill style={{ objectFit: 'contain' }} />
-      </ImageWrapper>
+      <ProductLink href={linkHref}>
+        <ImageWrapper>
+          <Image src={imageUrl} alt={productTitle} fill style={{ objectFit: 'contain' }} />
+        </ImageWrapper>
 
-      {product.isPromotional && <PromotionBanner>PROMOÇÃO</PromotionBanner>}
+        <CardContent>
+          <ProductTitle>{productTitle}</ProductTitle>
+          <PriceWrapper>
+            <Price isBlurred={!user}>
+              R$ {currentPrice?.toFixed(2).replace('.', ',')}
+            </Price>
+          </PriceWrapper>
 
-      <CardContent>
-        <h3>{productTitle}</h3>
-
-        <PriceWrapper>
-          <Price isBlurred={!user}>
-            R$ {currentPrice?.toFixed(2).replace('.', ',')}
-          </Price>
-          {!user && (
-            <LoginOverlay>
-              <OverlayText>
-                <Link href="/auth/login" passHref legacyBehavior><OverlayLink>Faça login</OverlayLink></Link>
-                ou
-                <Link href="/auth/register" passHref legacyBehavior><OverlayLink>cadastre-se</OverlayLink></Link>
-              </OverlayText>
-              <OverlayText>
-                para ver o preço
-              </OverlayText>
-            </LoginOverlay>
+          {/* Botão para usuários logados */}
+          {user && (
+            <ActionWrapper>
+              {/* O botão agora não tem mais um onClick próprio, ele seguirá o link do container pai */}
+              <Button style={{ width: '100%' }}>
+                Ver Detalhes
+              </Button>
+            </ActionWrapper>
           )}
-        </PriceWrapper>
+        </CardContent>
 
-        <div style={{ marginTop: 'auto' }}>
-          <a href={affiliateLink} target="_blank" rel="noopener noreferrer">
-            <Button style={{ width: '100%' }}>Ver Oferta</Button>
-          </a>
-        </div>
-      </CardContent>
+        <LoginOverlay isVisible={!user}>
+          <OverlayText>
+            <OverlayLink>Faça login</OverlayLink>
+            ou
+            <OverlayLink onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push('/auth/register'); }}>
+              cadastre-se
+            </OverlayLink>
+          </OverlayText>
+          <OverlayText>
+            para ver os detalhes
+          </OverlayText>
+        </LoginOverlay>
+      </ProductLink>
     </Card>
-  )
+  );
 }
 
 export default ProductCard;
