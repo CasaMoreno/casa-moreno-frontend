@@ -45,7 +45,9 @@ const TableWrapper = styled.div`
   overflow-x: auto;
   transition: max-height 0.3s ease-in-out; /* Adicionado para animação de colapso */
   max-height: 1000px; /* Valor inicial grande para quando expandido */
-  overflow: hidden; /* Esconde o conteúdo extra */
+  overflow-y: auto; /* Adicionado scroll vertical */
+  overflow-x: hidden; /* Garante que o scroll horizontal só apareça se necessário na tabela em si */
+
 
   &.collapsed {
     max-height: 0; /* Colapsa o conteúdo */
