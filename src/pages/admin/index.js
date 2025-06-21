@@ -32,10 +32,11 @@ const ProfileCard = styled.div`
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem; /* Ajustado para aproximar dos botões abaixo */
   display: flex;
   align-items: center;
   gap: 2.5rem;
+  position: relative; /* Essencial para posicionar o botão "Editar Perfil" */
   
   @media ${({ theme }) => theme.breakpoints.mobile} {
     flex-direction: column;
@@ -61,27 +62,35 @@ const Avatar = styled.div`
 const ProfileContent = styled.div`
     flex-grow: 1;
     width: 100%;
-`;
+    display: flex; /* Adicionado para controlar o alinhamento interno */
+    flex-direction: column; /* Conteúdo empilhado verticalmente */
+    align-items: flex-start; /* Alinhamento padrão para o início */
 
-const ProfileHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  h2 {
-    margin: 0;
-    font-size: 1.8rem;
-  }
-
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-    h2 {
-        font-size: 1.5rem;
+    @media ${({ theme }) => theme.breakpoints.mobile} {
+      align-items: center; /* Centraliza o conteúdo na vertical em mobile */
     }
-  }
 `;
+
+/* REMOVIDO: ProfileHeader não é mais necessário, pois o botão foi movido */
+// const ProfileHeader = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   margin-bottom: 1.5rem;
+//   h2 {
+//     margin: 0;
+//     font-size: 1.8rem;
+//   }
+//
+//   @media ${({ theme }) => theme.breakpoints.mobile} {
+//     flex-direction: column;
+//     gap: 1rem;
+//     text-align: center;
+//     h2 {
+//         font-size: 1.5rem;
+//     }
+//   }
+// `;
 
 const ProfileInfo = styled.div`
   display: grid;
@@ -103,12 +112,30 @@ const ProfileInfo = styled.div`
   }
 `;
 
-// Novo container para os botões administrativos, alinhando-os horizontalmente
+// Botão para edição de perfil, agora posicionado absolutamente
+const EditProfileButton = styled(Button)`
+  position: absolute;
+  top: 1.5rem; /* Distância do topo do ProfileCard */
+  right: 1.5rem; /* Distância da direita do ProfileCard */
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  z-index: 10; /* Garante que o botão fique acima de outros elementos */
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    position: static; /* Remove o posicionamento absoluto no mobile */
+    margin-top: 1rem; /* Adiciona espaço acima do botão no mobile */
+    width: 100%; /* Ocupa a largura total no mobile */
+    max-width: 200px; /* Limita a largura para melhor visualização no mobile */
+    align-self: center; /* Centraliza o botão no mobile se ProfileCard for flex-column */
+  }
+`;
+
+
 const AdminButtonsContainer = styled.div`
   display: flex;
   justify-content: center; /* Centraliza os botões */
   gap: 2rem; /* Espaçamento entre os botões */
-  margin-top: 3rem; /* Margem superior para separar do card de perfil */
+  margin-top: 1rem; /* Ajustado para aproximar dos dados do admin */
   width: 100%; /* Ocupa a largura total do DashboardContainer */
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
@@ -118,7 +145,6 @@ const AdminButtonsContainer = styled.div`
   }
 `;
 
-// Estilo dos botões administrativos, similar ao CategoryCard
 const AdminButtonCard = styled.div`
   background: white;
   padding: 2.5rem;
@@ -202,10 +228,7 @@ const UserDashboard = () => {
         <ProfileCard>
           <Avatar>{userData.name.charAt(0)}</Avatar>
           <ProfileContent>
-            <ProfileHeader>
-              <h2>Meus Dados</h2>
-              <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
-            </ProfileHeader>
+            {/* Removido o h2 "Meus Dados" daqui e o ProfileHeader que o envolvia */}
             <ProfileInfo>
               <strong>Nome:</strong><p>{userData.name}</p>
               <strong>Username:</strong><p>{userData.username}</p>
@@ -215,6 +238,8 @@ const UserDashboard = () => {
               <strong>Atualizado em:</strong><p>{formatDate(userData.updatedAt)}</p>
             </ProfileInfo>
           </ProfileContent>
+          {/* Botão de edição de perfil agora posicionado aqui */}
+          <EditProfileButton onClick={() => setIsEditing(true)}>Editar Perfil</EditProfileButton>
         </ProfileCard>
 
         {authUser?.scope === 'ADMIN' && (
