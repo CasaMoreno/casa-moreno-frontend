@@ -24,7 +24,7 @@ const PageHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  flex-wrap: wrap; // Permite que os itens quebrem a linha
+  flex-wrap: wrap;
   gap: 1rem;
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
@@ -42,11 +42,11 @@ const HeaderActions = styled.div`
 const PageTitle = styled.h1``;
 
 const TableWrapper = styled.div`
-  overflow-x: auto;
-  transition: max-height 0.3s ease-in-out; /* Adicionado para animação de colapso */
+  overflow-x: auto; /* Mantido para rolagem horizontal */
+  transition: max-height 0.3s ease-in-out;
   max-height: 1000px; /* Valor inicial grande para quando expandido */
   overflow-y: auto; /* Adicionado scroll vertical */
-  overflow-x: hidden; /* Garante que o scroll horizontal só apareça se necessário na tabela em si */
+  /* REMOVIDO: overflow-x: hidden; foi removido daqui para permitir a rolagem horizontal */
 
 
   &.collapsed {
@@ -98,19 +98,18 @@ const CategoryTitle = styled.h2`
   padding-bottom: 0.5rem;
   border-bottom: 2px solid ${({ theme }) => theme.colors.primaryBlue};
   text-align: left;
-  cursor: pointer; /* Indica que é clicável */
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  user-select: none; /* Impede seleção de texto ao clicar */
+  user-select: none;
 
   svg {
     transition: transform 0.3s ease-in-out;
-    transform: rotate(${({ isCollapsed }) => (isCollapsed ? '0deg' : '90deg')}); /* Gira a seta */
+    transform: rotate(${({ isCollapsed }) => (isCollapsed ? '0deg' : '90deg')});
   }
 `;
 
-// Ícone de seta para indicar o estado de colapso/expansão
 const ArrowIcon = ({ isCollapsed }) => (
     <svg
         width="24"
@@ -188,8 +187,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
 
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 
-    // Estado para controlar quais categorias estão colapsadas.
-    // Por padrão, todas exceto a primeira categoria (sortedCategories[0]) estarão colapsadas.
     const [collapsedCategories, setCollapsedCategories] = useState(() => {
         const initialCollapsed = new Set();
         if (sortedCategories.length > 1) {
@@ -200,7 +197,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
         return initialCollapsed;
     });
 
-    // Função para alternar a visibilidade de uma categoria
     const toggleCategoryVisibility = (category) => {
         setCollapsedCategories(prev => {
             const newSet = new Set(prev);
