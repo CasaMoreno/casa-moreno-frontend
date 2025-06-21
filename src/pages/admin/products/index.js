@@ -43,6 +43,13 @@ const PageTitle = styled.h1``;
 
 const TableWrapper = styled.div`
   overflow-x: auto;
+  transition: max-height 0.3s ease-in-out; /* Adicionado para animação de colapso */
+  max-height: 1000px; /* Valor inicial grande para quando expandido */
+  overflow: hidden; /* Esconde o conteúdo extra */
+
+  &.collapsed {
+    max-height: 0; /* Colapsa o conteúdo */
+  }
 `;
 
 const ProductTable = styled.table`
@@ -89,7 +96,34 @@ const CategoryTitle = styled.h2`
   padding-bottom: 0.5rem;
   border-bottom: 2px solid ${({ theme }) => theme.colors.primaryBlue};
   text-align: left;
+  cursor: pointer; /* Indica que é clicável */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none; /* Impede seleção de texto ao clicar */
+
+  svg {
+    transition: transform 0.3s ease-in-out;
+    transform: rotate(${({ isCollapsed }) => (isCollapsed ? '0deg' : '90deg')}); /* Gira a seta */
+  }
 `;
+
+// Ícone de seta para indicar o estado de colapso/expansão
+const ArrowIcon = ({ isCollapsed }) => (
+    <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+);
+
 
 const SwitchLabel = styled.label`
   position: relative;
@@ -138,7 +172,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
     const { showConfirmation, showNotification } = useNotification();
 
     const groupedAndSortedProducts = useMemo(() => {
-        // ... (lógica existente)
         const grouped = products.reduce((acc, product) => {
             const category = product.productCategory || 'Sem Categoria';
             if (!acc[category]) acc[category] = [];
@@ -152,6 +185,31 @@ const ProductsManagementPage = ({ initialProducts }) => {
     }, [products]);
 
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
+
+    // Estado para controlar quais categorias estão colapsadas.
+    // Por padrão, todas exceto a primeira categoria (sortedCategories[0]) estarão colapsadas.
+    const [collapsedCategories, setCollapsedCategories] = useState(() => {
+        const initialCollapsed = new Set();
+        if (sortedCategories.length > 1) {
+            for (let i = 1; i < sortedCategories.length; i++) {
+                initialCollapsed.add(sortedCategories[i]);
+            }
+        }
+        return initialCollapsed;
+    });
+
+    // Função para alternar a visibilidade de uma categoria
+    const toggleCategoryVisibility = (category) => {
+        setCollapsedCategories(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(category)) {
+                newSet.delete(category);
+            } else {
+                newSet.add(category);
+            }
+            return newSet;
+        });
+    };
 
     const handleDelete = async (productId, productTitle) => {
         showConfirmation({
@@ -169,7 +227,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
         });
     };
 
-    // Lógica para toggle promocional restaurada
     const handlePromotionalToggle = async (productId, currentStatus) => {
         try {
             await apiClient.patch(`/products/${productId}/promotional?status=${!currentStatus}`);
@@ -196,8 +253,14 @@ const ProductsManagementPage = ({ initialProducts }) => {
 
                 {sortedCategories.map(category => (
                     <div key={category}>
-                        <CategoryTitle>{category}</CategoryTitle>
-                        <TableWrapper>
+                        <CategoryTitle
+                            onClick={() => toggleCategoryVisibility(category)}
+                            isCollapsed={collapsedCategories.has(category)}
+                        >
+                            {category}
+                            <ArrowIcon isCollapsed={collapsedCategories.has(category)} />
+                        </CategoryTitle>
+                        <TableWrapper className={collapsedCategories.has(category) ? 'collapsed' : ''}>
                             <ProductTable>
                                 <thead>
                                     <tr>
@@ -213,14 +276,13 @@ const ProductsManagementPage = ({ initialProducts }) => {
                                     {groupedAndSortedProducts[category].map(product => (
                                         <tr key={product.productId}>
                                             <td>
-                                                {/* Adicionado Link para a página de detalhes do produto */}
                                                 <Link href={`/product/${product.productId}`} passHref>
                                                     <Image src={product.galleryImageUrls?.[0] || '/placeholder.png'} alt={product.productTitle} width={60} height={60} style={{ objectFit: 'contain', margin: 'auto', cursor: 'pointer' }} />
                                                 </Link>
                                             </td>
                                             <td>{product.productTitle}</td>
                                             <td>{product.productBrand}</td>
-                                            <td>R$ {product.currentPrice?.toFixed(2).replace('.', ',')}</td> {/* Formato BR */}
+                                            <td>R$ {product.currentPrice?.toFixed(2).replace('.', ',')}</td>
                                             <td>
                                                 <SwitchLabel>
                                                     <SwitchInput
