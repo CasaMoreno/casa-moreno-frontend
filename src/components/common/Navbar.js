@@ -104,7 +104,10 @@ const DropdownMenu = styled.div`
 `;
 
 const DropdownItem = styled.a`
-  display: block; padding: 0.75rem 1rem;
+  display: flex; /* Changed to flex to align icon and text */
+  align-items: center; /* Center items vertically */
+  gap: 0.5rem; /* Space between icon and text */
+  padding: 0.75rem 1rem;
   color: ${({ theme }) => theme.colors.darkGray};
   cursor: pointer; font-weight: normal;
   &:hover { background-color: ${({ theme }) => theme.colors.lightGray}; }
@@ -283,11 +286,20 @@ const Navbar = () => {
         <DesktopLinksContainer>
           {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
-              {/* *** ALTERAÇÃO AQUI *** */}
               <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {userData.name} ▼</UserMenuButton>
               <DropdownMenu isOpen={isUserMenuOpen}>
-                <Link href={getDashboardPath()} passHref legacyBehavior><DropdownItem onClick={() => setIsUserMenuOpen(false)}>Meu Painel</DropdownItem></Link>
-                <DropdownItem onClick={handleLogout}>Sair</DropdownItem>
+                {/* Updated DropdownItem for "Meu Painel" with icon */}
+                <Link href={getDashboardPath()} passHref legacyBehavior>
+                  <DropdownItem onClick={() => setIsUserMenuOpen(false)}>
+                    <PanelIcon />
+                    <span>Meu Painel</span>
+                  </DropdownItem>
+                </Link>
+                {/* Updated DropdownItem for "Sair" with icon */}
+                <DropdownItem onClick={handleLogout}>
+                  <LogoutIcon />
+                  <span>Sair</span>
+                </DropdownItem>
               </DropdownMenu>
             </UserMenuContainer>
           ) : (
@@ -305,7 +317,6 @@ const Navbar = () => {
         <MobileMenu isOpen={isMobileMenuOpen}>
           <MenuHeader>
             <LogoText>Casa Moreno</LogoText>
-            {/* *** ALTERAÇÃO AQUI *** */}
             {user && userData && <UserGreeting>Olá, {userData.name}</UserGreeting>}
           </MenuHeader>
 
