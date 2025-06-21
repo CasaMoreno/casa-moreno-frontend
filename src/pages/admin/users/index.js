@@ -1,3 +1,4 @@
+// src/pages/admin/users/index.js
 import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -81,6 +82,12 @@ const EmptyStateCell = styled.td`
   color: #666;
 `;
 
+const HeaderActions = styled.div` // Adicionado estilo para agrupar botões no cabeçalho
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
 
 const UsersManagementPage = ({ initialUsers }) => {
     const [users, setUsers] = useState(initialUsers);
@@ -99,13 +106,26 @@ const UsersManagementPage = ({ initialUsers }) => {
             title: 'Confirmar Exclusão',
             message: `Tem certeza que deseja deletar o usuário: "${userName}"?`,
             onConfirm: async () => {
-                // ... (lógica existente)
+                try {
+                    await apiClient.delete(`/users/delete/${userId}`);
+                    setUsers(users.filter(u => u.userId !== userId));
+                    showNotification({ title: 'Sucesso', message: 'Usuário deletado!' });
+                } catch (error) {
+                    showNotification({ title: 'Erro', message: 'Falha ao deletar usuário.' });
+                }
             }
         });
     };
 
     const handleUpdateUser = async (userData) => {
-        // ... (lógica existente)
+        try {
+            const response = await apiClient.put('/users/update', userData);
+            setUsers(users.map(u => u.userId === userData.userId ? response.data : u));
+            setEditingUser(null);
+            showNotification({ title: 'Sucesso', message: 'Usuário atualizado com sucesso!' });
+        } catch (error) {
+            showNotification({ title: 'Erro', message: 'Falha ao atualizar usuário.' });
+        }
     };
 
     return (
@@ -116,9 +136,12 @@ const UsersManagementPage = ({ initialUsers }) => {
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Usuários</PageTitle>
-                    <Link href="/admin" passHref>
-                        <Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button>
-                    </Link>
+                    <HeaderActions> {/* Usar HeaderActions para alinhar botões */}
+                        <Link href="/admin" passHref><Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button></Link>
+                        <Link href="/auth/register" passHref> {/* Link para a página de registro, ou crie uma nova em /admin/users/new */}
+                            <Button as="a">Criar Novo Usuário</Button>
+                        </Link>
+                    </HeaderActions>
                 </PageHeader>
                 <TableWrapper>
                     <UserTable>

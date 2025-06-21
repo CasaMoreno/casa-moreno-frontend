@@ -63,7 +63,7 @@ const StyledLink = styled.a`
   cursor: pointer;
   text-decoration: none;
   transition: color 0.3s ease-out;
-  color: ${({ isActive, inMobileMenu }) => (isActive && !inMobileMenu ? 'white' : 'rgba(255, 255, 255, 0.7)')};
+  color: ${({ isActive }) => (isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
   font-size: ${({ isActive }) => (isActive ? '1.05rem' : '1rem')};
 
   &::after {
@@ -78,7 +78,7 @@ const StyledLink = styled.a`
     transition: transform 0.3s ease-out;
   }
 
-  ${({ isActive, inMobileMenu }) => !isActive && !inMobileMenu && css`
+  ${({ isActive }) => !isActive && css`
     &:hover::after { transform: scaleX(1); }
   `}
 `;
@@ -163,7 +163,6 @@ const MenuHeader = styled.div`
   width: 100%;
   text-align: center;
   padding: 1rem 0 2rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
 const UserGreeting = styled.p`
@@ -174,7 +173,13 @@ const UserGreeting = styled.p`
 
 const MenuSection = styled.div`
   width: 100%;
-  margin-top: 1rem;
+  padding-top: 1.5rem;
+
+  &:not(:first-of-type) {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
   h4 {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.9rem;
@@ -190,13 +195,22 @@ const MenuLink = styled.a`
   align-items: center;
   gap: 1rem;
   padding: 0.8rem 1rem;
+  width: 100%;
+  
+  font-family: inherit;
   font-size: 1.1rem;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.9);
+  
+  text-align: left;
   text-decoration: none;
+  
+  background: transparent;
+  border: none;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   &:hover, &.active {
     background-color: rgba(0, 0, 0, 0.2);
@@ -242,7 +256,6 @@ const Navbar = () => {
     return () => router.events.off('routeChangeComplete', handleRouteChange);
   }, [router.events]);
 
-  const getFirstName = () => userData?.name?.split(' ')[0] || '';
   const getDashboardPath = () => user?.scope === 'ADMIN' ? '/admin' : '/dashboard';
 
   const handleLogout = () => {
@@ -268,9 +281,10 @@ const Navbar = () => {
         </DesktopLinksContainer>
 
         <DesktopLinksContainer>
-          {user ? (
+          {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
-              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {getFirstName()} ▼</UserMenuButton>
+              {/* *** ALTERAÇÃO AQUI *** */}
+              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {userData.name} ▼</UserMenuButton>
               <DropdownMenu isOpen={isUserMenuOpen}>
                 <Link href={getDashboardPath()} passHref legacyBehavior><DropdownItem onClick={() => setIsUserMenuOpen(false)}>Meu Painel</DropdownItem></Link>
                 <DropdownItem onClick={handleLogout}>Sair</DropdownItem>
@@ -291,7 +305,8 @@ const Navbar = () => {
         <MobileMenu isOpen={isMobileMenuOpen}>
           <MenuHeader>
             <LogoText>Casa Moreno</LogoText>
-            {user && <UserGreeting>Olá, {getFirstName()}</UserGreeting>}
+            {/* *** ALTERAÇÃO AQUI *** */}
+            {user && userData && <UserGreeting>Olá, {userData.name}</UserGreeting>}
           </MenuHeader>
 
           <MenuSection>

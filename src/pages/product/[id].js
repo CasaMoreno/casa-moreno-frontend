@@ -72,7 +72,7 @@ const MainLayout = styled.div`
   gap: 3rem;
   align-items: flex-start;
 
-  @media (max-width: 900px) { // Mantido como estava, pois é um bom ponto de quebra
+  @media (max-width: 900px) {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
@@ -127,6 +127,7 @@ const ProductTitle = styled.h1`
   @media (max-width: 900px) {
     padding-right: 0;
     font-size: 1.7rem;
+    margin-top: 2rem; // Adicionado para dar espaço para o botão de editar no mobile
   }
 `;
 
@@ -206,6 +207,12 @@ const ProductDetailPage = ({ product, error }) => {
   if (error) return <Layout><p style={{ textAlign: 'center', marginTop: '3rem' }}>{error}</p></Layout>
   if (router.isFallback || !product) return <Layout><div>Carregando...</div></Layout>;
 
+  // *** FUNÇÃO CORRIGIDA/REINSERIDA ***
+  const formatCurrency = (value) => {
+    if (typeof value !== 'number') return '';
+    return value.toFixed(2).replace('.', ',');
+  };
+
   const mainImageUrl = product.galleryImageUrls?.[selectedImage] || '/placeholder.png';
 
   return (
@@ -249,12 +256,26 @@ const ProductDetailPage = ({ product, error }) => {
               <SubtitleInfo>
                 Marca: <strong>{product.productBrand || 'N/A'}</strong> | Condição: <strong>{product.productCondition || 'N/A'}</strong>
               </SubtitleInfo>
+
+              {/* *** BLOCO DE CÓDIGO CORRIGIDO/REINSERIDO *** */}
               <PricingBlock>
-                {/* ... restante do código de preço ... */}
+                {product.originalPrice > product.currentPrice && (
+                  <PriceRow>
+                    <OriginalPrice>R$ {formatCurrency(product.originalPrice)}</OriginalPrice>
+                    {product.discountPercentage && <DiscountBadge>{product.discountPercentage}</DiscountBadge>}
+                  </PriceRow>
+                )}
+                <CurrentPrice>R$ {formatCurrency(product.currentPrice)}</CurrentPrice>
+                {product.installments > 1 && (
+                  <InstallmentInfo>
+                    ou em <strong>{product.installments}x de R$ {formatCurrency(product.installmentValue)}</strong>
+                  </InstallmentInfo>
+                )}
               </PricingBlock>
+
               <p>Estoque: <strong>{product.stockStatus || 'Consulte na loja'}</strong></p>
               <a href={product.affiliateLink} target="_blank" rel="noopener noreferrer">
-                <AffiliateButton>Ver Oferta na Loja</AffiliateButton>
+                <AffiliateButton>Ver Oferta na Loja do Parceiro</AffiliateButton>
               </a>
             </DetailsColumn>
           </MainLayout>
@@ -277,7 +298,8 @@ export async function getServerSideProps(context) {
     const response = await apiClient.get(`/products/${id}`);
     return { props: { product: response.data } };
   } catch (error) {
-    return { props: { product: null, error: "Produto não encontrado." } };
+    console.error(`Failed to fetch product ${id}`, error);
+    return { props: { product: null, error: "Produto não encontrado ou indisponível." } };
   }
 }
 
