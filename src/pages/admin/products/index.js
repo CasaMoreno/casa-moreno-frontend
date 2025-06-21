@@ -1,3 +1,4 @@
+// src/pages/admin/products/index.js
 import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -168,9 +169,19 @@ const ProductsManagementPage = ({ initialProducts }) => {
         });
     };
 
+    // Lógica para toggle promocional restaurada
     const handlePromotionalToggle = async (productId, currentStatus) => {
-        // ... (lógica existente)
+        try {
+            await apiClient.patch(`/products/${productId}/promotional?status=${!currentStatus}`);
+            setProducts(products.map(p =>
+                p.productId === productId ? { ...p, isPromotional: !currentStatus } : p
+            ));
+        } catch (error) {
+            console.error("Erro ao alternar status promocional", error);
+            showNotification({ title: 'Erro', message: 'Falha ao atualizar status promocional.' });
+        }
     };
+
 
     return (
         <Layout>
@@ -201,13 +212,22 @@ const ProductsManagementPage = ({ initialProducts }) => {
                                 <tbody>
                                     {groupedAndSortedProducts[category].map(product => (
                                         <tr key={product.productId}>
-                                            <td><Image src={product.galleryImageUrls?.[0] || '/placeholder.png'} alt={product.productTitle} width={60} height={60} style={{ objectFit: 'contain', margin: 'auto' }} /></td>
+                                            <td>
+                                                {/* Adicionado Link para a página de detalhes do produto */}
+                                                <Link href={`/product/${product.productId}`} passHref>
+                                                    <Image src={product.galleryImageUrls?.[0] || '/placeholder.png'} alt={product.productTitle} width={60} height={60} style={{ objectFit: 'contain', margin: 'auto', cursor: 'pointer' }} />
+                                                </Link>
+                                            </td>
                                             <td>{product.productTitle}</td>
                                             <td>{product.productBrand}</td>
-                                            <td>R$ {product.currentPrice?.toFixed(2)}</td>
+                                            <td>R$ {product.currentPrice?.toFixed(2).replace('.', ',')}</td> {/* Formato BR */}
                                             <td>
                                                 <SwitchLabel>
-                                                    <SwitchInput type="checkbox" checked={product.isPromotional || false} onChange={() => handlePromotionalToggle(product.productId, product.isPromotional)} />
+                                                    <SwitchInput
+                                                        type="checkbox"
+                                                        checked={product.isPromotional || false}
+                                                        onChange={() => handlePromotionalToggle(product.productId, product.isPromotional)}
+                                                    />
                                                     <Slider />
                                                 </SwitchLabel>
                                             </td>
