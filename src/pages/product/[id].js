@@ -1,3 +1,4 @@
+// src/pages/product/[id].js
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import styled, { css } from 'styled-components';
@@ -9,6 +10,7 @@ import apiClient from '@/api/axios';
 import Button from '@/components/common/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
+import CancelButton from '@/components/common/CancelButton'; // Importar CancelButton para o estilo do DeleteButton
 
 // DND-KIT Imports
 import {
@@ -33,7 +35,7 @@ import { CSS } from '@dnd-kit/utilities';
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    <path d="M18.5 2.5a2.121 2.000 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
   </svg>
 );
 
@@ -80,6 +82,8 @@ const AdminActionWrapper = styled.div`
    top: 1.5rem;
    right: 1.5rem;
    z-index: 10;
+   display: flex; /* Adicionado para alinhar os botões */
+   gap: 10px; /* Espaçamento entre os botões */
  `;
 
 const AdminEditButton = styled(Button)`
@@ -92,6 +96,13 @@ const AdminEditButton = styled(Button)`
    &:hover {
      background-color: #555;
    }
+ `;
+
+// NOVO ESTILO: Botão de deleção para a página de detalhes do produto
+const AdminDeleteButton = styled(CancelButton)` // Usando CancelButton como base para o estilo
+   padding: 10px 18px;
+   font-size: 0.9rem;
+   flex-shrink: 0;
  `;
 
 const Breadcrumbs = styled.div`
@@ -175,6 +186,21 @@ const NavButton = styled.button`
    }
  `;
 
+const ThumbnailMainImageBadge = styled.div`
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #FFD700;
+  border-radius: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+`;
+
 
 const ThumbnailList = styled.div`
    display: grid;
@@ -182,77 +208,21 @@ const ThumbnailList = styled.div`
    gap: 0.75rem;
  `;
 
-const StyledThumbnail = styled.div` /* Renomeado para evitar conflito com o wrapper SortableThumbnail */
+const StyledThumbnail = styled.div`
    width: 100%;
    padding-top: 100%;  
    position: relative;
    border-radius: 5px;
    overflow: hidden;
-   cursor: pointer; /* Cursor padrão para não-arrastáveis ou quando não está arrastando */
+   cursor: pointer;
    border: 2px solid ${({ isActive }) => (isActive ? '#2A4A87' : '#eee')};
    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     
-   /* Estilos para arrastar e soltar do dnd-kit */
    ${({ isDragging }) => isDragging && css`
-     opacity: 0.5; /* Item arrastado fica semi-transparente */
+     opacity: 0.5;
      border-color: ${({ theme }) => theme.colors.primaryPurple};
      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primaryPurple};
    `}
-
-   /* Estilos para o item sendo arrastado (clone no cursor) - gerido pelo dnd-kit */
-   /* Isso pode precisar de ajustes dependendo do comportamento exato do navegador/dnd-kit */
-   &.dnd-kit-dragging-sortable { /* Classe que dnd-kit aplica ao clone */
-     cursor: grabbing;
-   }
- `;
-
-const ThumbnailActions = styled.div`
-     position: absolute;
-     top: 5px;
-     left: 5px;
-     right: 5px;
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     z-index: 5;
-      
-     button {
-         background-color: rgba(0, 0, 0, 0.6);
-         color: white;
-         border: none;
-         border-radius: 3px;
-         width: 18px; /* Reduzido o tamanho */
-         height: 18px; /* Reduzido o tamanho */
-         padding: 0;
-         font-size: 0.65rem; /* Reduzido a fonte para o 'X' */
-         cursor: pointer;
-         transition: background-color 0.2s ease;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-
-         &:hover {
-             background-color: rgba(0, 0, 0, 0.8);
-         }
-     }
-
-     .delete-btn {
-         background-color: #dc3545;
-         &:hover {
-             background-color: #c82333;
-         }
-     }
-
-     .main-image-badge {
-        background-color: rgba(0, 0, 0, 0.6);
-        color: #FFD700;
-        border-radius: 3px;
-        width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-     }
  `;
 
 
@@ -343,7 +313,7 @@ const DescriptionSection = styled.div`
  `;
 
 // Componente Wrapper para SortableItem
-const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, handleDeleteImage }) => {
+const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage }) => {
   const {
     attributes,
     listeners,
@@ -356,7 +326,7 @@ const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, hand
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 1000 : 'auto', // Garante que o item arrastado fique por cima
+    zIndex: isDragging ? 1000 : 'auto',
   };
 
   return (
@@ -364,21 +334,17 @@ const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, hand
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
+      {...listeners} // Listeners do dnd-kit aplicados ao StyledThumbnail
       isActive={isActive}
       onClick={onClick}
       isDragging={isDragging}
     >
       <Image src={url} alt={`Thumbnail ${id}`} fill style={{ objectFit: 'contain' }} />
-      {user?.scope === 'ADMIN' && (
-        <ThumbnailActions>
-          {isMainImage && ( // Renderiza o badge da estrela SOMENTE se for a imagem principal
-            <div title="Imagem Principal" className="main-image-badge">
-              <StarIcon />
-            </div>
-          )}
-          <button title="Excluir imagem" className="delete-btn" onClick={(e) => { e.stopPropagation(); handleDeleteImage(id); }}>X</button>
-        </ThumbnailActions>
+      {user?.scope === 'ADMIN' && isMainImage && (
+        // Renderiza o badge de imagem principal aqui, agora separado do botão de exclusão
+        <ThumbnailMainImageBadge title="Imagem Principal">
+          <StarIcon />
+        </ThumbnailMainImageBadge>
       )}
     </StyledThumbnail>
   );
@@ -394,7 +360,12 @@ const ProductDetailPage = ({ product, error }) => {
 
   // DND-KIT Hooks
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 125, // Tempo em ms para que o clique se torne um arrasto
+        tolerance: 5, // Distância em pixels para que o arrasto seja ativado
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -402,13 +373,9 @@ const ProductDetailPage = ({ product, error }) => {
 
   useEffect(() => {
     setCurrentProduct(product);
-    // Assegura que o índice selecionado esteja sempre dentro dos limites e a primeira imagem seja a principal por padrão
     if (product?.galleryImageUrls && product.galleryImageUrls.length > 0) {
-      // Se a imagem principal do produto mudou (primeiro item do array), ou a imagem selecionada não existe mais,
-      // ou a imagem selecionada não é a primeira mas a nova principal não é a mesma do selectedImageIndex atual,
-      // redefinir para 0.
       if (
-        !currentProduct?.galleryImageUrls || // Se currentProduct ainda não foi inicializado (primeira render)
+        !currentProduct?.galleryImageUrls ||
         selectedImageIndex >= product.galleryImageUrls.length ||
         (product.galleryImageUrls[0] !== currentProduct.galleryImageUrls[0] && selectedImageIndex !== 0) ||
         (selectedImageIndex !== 0 && !product.galleryImageUrls.includes(currentProduct.galleryImageUrls[selectedImageIndex]))
@@ -416,7 +383,7 @@ const ProductDetailPage = ({ product, error }) => {
         setSelectedImageIndex(0);
       }
     } else {
-      setSelectedImageIndex(0); // Nenhum produto ou nenhuma imagem, seleciona 0.
+      setSelectedImageIndex(0);
     }
   }, [product]);
 
@@ -430,31 +397,19 @@ const ProductDetailPage = ({ product, error }) => {
 
   const mainImageUrl = currentProduct.galleryImageUrls?.[selectedImageIndex] || '/placeholder.png';
 
-  const handleDeleteImage = async (imageUrlToDelete) => {
-    const indexToDelete = currentProduct.galleryImageUrls.indexOf(imageUrlToDelete);
-    if (currentProduct.galleryImageUrls.length <= 1) {
-      showNotification({ title: 'Erro', message: 'Não é possível excluir a única imagem do produto.' });
-      return;
-    }
-
+  // FUNÇÃO DELETAR PRODUTO INTEIRO
+  const handleDeleteProduct = async () => {
     showConfirmation({
-      title: 'Confirmar Exclusão de Imagem',
-      message: 'Tem certeza que deseja excluir esta imagem? Esta ação é irreversível.',
+      title: 'Confirmar Exclusão',
+      message: `Tem certeza que deseja deletar o produto: "${currentProduct.productTitle}"? Esta ação é irreversível.`,
       onConfirm: async () => {
         try {
-          await apiClient.delete(`/products/${currentProduct.productId}/images/delete`, {
-            data: JSON.stringify(imageUrlToDelete),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-
-          router.replace(router.asPath); // Recarrega os dados do servidor
-
-          showNotification({ title: 'Sucesso', message: 'Imagem excluída com sucesso!' });
+          await apiClient.delete(`/products/delete/${currentProduct.productId}`);
+          showNotification({ title: 'Sucesso', message: 'Produto deletado com sucesso!' });
+          router.push('/admin/products'); // Redireciona para a lista de produtos
         } catch (err) {
-          console.error("Falha ao excluir imagem", err);
-          showNotification({ title: 'Erro', message: 'Falha ao excluir imagem. Tente novamente.' });
+          showNotification({ title: 'Erro', message: 'Falha ao deletar o produto.' });
+          console.error("Falha ao deletar produto", err);
         }
       }
     });
@@ -474,67 +429,43 @@ const ProductDetailPage = ({ product, error }) => {
 
   const hasMultipleImages = currentProduct.galleryImageUrls && currentProduct.galleryImageUrls.length > 1;
 
-  // DND-KIT: Função para lidar com o fim do arrasto
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) { // Se não houver 'over' ou for o mesmo item, não faz nada
+    if (!over || active.id === over.id) {
       return;
     }
 
     const oldIndex = currentProduct.galleryImageUrls.indexOf(active.id);
     const newIndex = currentProduct.galleryImageUrls.indexOf(over.id);
 
-    // Se os índices forem válidos e diferentes, move a imagem
     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
       const newOrderedGallery = arrayMove(currentProduct.galleryImageUrls, oldIndex, newIndex);
 
-      // Atualiza o estado local para uma prévia instantânea
       setCurrentProduct(prev => ({ ...prev, galleryImageUrls: newOrderedGallery }));
 
-      // Ajusta o selectedImageIndex se a imagem principal mudar ou a selecionada for movida
-      if (newIndex === 0) { // Se o item foi movido para a primeira posição
-        setSelectedImageIndex(0);
-      } else if (selectedImageIndex === oldIndex) { // Se o item selecionado foi movido, seu novo índice é newIndex
+      if (selectedImageIndex === oldIndex) {
         setSelectedImageIndex(newIndex);
-      } else if (selectedImageIndex === newIndex && oldIndex !== 0) { // Se o selectedImageIndex foi o "alvo" e o item ativo NÃO era o principal
-        // O selectedImageIndex permanece o mesmo, mas o item que estava lá foi movido.
-        // A imagem que estava em oldIndex agora está em newIndex (se newIndex < oldIndex), ou em newIndex - 1 (se newIndex > oldIndex)
-        // No entanto, a lógica do arrayMove já reflete a nova ordem.
-        // Para simplicidade, se o selectedImageIndex era o alvo, e o item ativo foi para lá,
-        // e o item ativo não era o principal, o selectedImageIndex continua apontando para o item que está agora em newIndex.
-      } else if (selectedImageIndex > oldIndex && selectedImageIndex <= newIndex) {
-        // Se o item selecionado estava entre a posição original e a nova posição do item arrastado,
-        // e o item foi movido para uma posição anterior, o selectedImageIndex deveria ser incrementado
+      } else if (oldIndex < selectedImageIndex && newIndex >= selectedImageIndex) {
         setSelectedImageIndex(prevIndex => prevIndex - 1);
-      } else if (selectedImageIndex < oldIndex && selectedImageIndex >= newIndex) {
-        // Se o item selecionado estava entre a nova posição e a posição original do item arrastado,
-        // e o item foi movido para uma posição posterior, o selectedImageIndex deveria ser decrementado
+      } else if (oldIndex > selectedImageIndex && newIndex <= selectedImageIndex) {
         setSelectedImageIndex(prevIndex => prevIndex + 1);
       }
-      // Caso contrário, selectedImageIndex não é afetado diretamente pela movimentação.
+      if (newIndex === 0 && selectedImageIndex !== 0) {
+        setSelectedImageIndex(0);
+      }
 
-
-
-      // Notifica o backend com a nova ordem.
-      // Se o item que foi para a primeira posição já era o primeiro, não é necessário fazer uma chamada para set-main.
-      // Apenas a ordem geral precisa ser atualizada.
       try {
-        // Envia a nova ordem completa das imagens. O backend pode inferir a principal.
         await apiClient.put(`/products/update`, {
           productId: currentProduct.productId,
           galleryImageUrls: newOrderedGallery
         });
         showNotification({ title: 'Sucesso', message: 'Ordem das imagens atualizada!' });
-        // A UI já foi atualizada localmente acima, então não precisamos de router.replace a menos que haja um erro.
-        // Se o primeiro item do array mudou, o `useEffect` que observa `product` (quando `router.replace` recarregar)
-        // garantirá que `selectedImageIndex` seja 0, que é o comportamento desejado.
       } catch (err) {
         console.error("Falha ao atualizar a ordem das imagens", err);
         showNotification({ title: 'Erro', message: 'Falha ao atualizar a ordem das imagens. Tente novamente.' });
-        setCurrentProduct(product); // Reverte a UI em caso de erro da API
-        // Também reverta o selectedImageIndex se houve um erro no backend.
-        setSelectedImageIndex(currentProduct.galleryImageUrls.indexOf(mainImageUrl)); // Tenta voltar para o índice da imagem principal anterior
+        setCurrentProduct(product);
+        setSelectedImageIndex(product.galleryImageUrls.indexOf(mainImageUrl));
       }
     }
   };
@@ -550,9 +481,11 @@ const ProductDetailPage = ({ product, error }) => {
         <ProductPageContainer>
           {user?.scope === 'ADMIN' && (
             <AdminActionWrapper>
+              {/* ALERTA DE ALTERAÇÃO: Botão de Editar à esquerda e Deletar à direita */}
               <Link href={`/admin/edit/${currentProduct.productId}`} passHref>
                 <AdminEditButton as="a"><EditIcon />Editar</AdminEditButton>
               </Link>
+              <AdminDeleteButton onClick={handleDeleteProduct}>Deletar</AdminDeleteButton>
             </AdminActionWrapper>
           )}
 
@@ -578,33 +511,32 @@ const ProductDetailPage = ({ product, error }) => {
                   </>
                 )}
               </MainImageContainerWithNav>
-              {user?.scope === 'ADMIN' && currentProduct.galleryImageUrls ? ( /* Condicionalmente renderiza DndContext */
+              {user?.scope === 'ADMIN' && currentProduct.galleryImageUrls ? (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext
-                    items={currentProduct.galleryImageUrls.map(url => url)} /* IDs únicos para os itens sortable */
+                    items={currentProduct.galleryImageUrls.map(url => url)}
                     strategy={verticalListSortingStrategy}
                   >
                     <ThumbnailList>
                       {currentProduct.galleryImageUrls.map((url, index) => (
                         <SortableThumbnail
-                          key={url} /* key é importante para o React */
-                          id={url} /* id é necessário para o useSortable */
+                          key={url}
+                          id={url}
                           url={url}
                           isActive={index === selectedImageIndex}
                           onClick={() => setSelectedImageIndex(index)}
                           user={user}
-                          isMainImage={index === 0} // Passa true se for a primeira imagem
-                          handleDeleteImage={handleDeleteImage}
+                          isMainImage={index === 0}
                         />
                       ))}
                     </ThumbnailList>
                   </SortableContext>
                 </DndContext>
-              ) : ( /* Renderização normal se não for admin ou não houver imagens */
+              ) : (
                 <ThumbnailList>
                   {currentProduct.galleryImageUrls?.map((url, index) => (
                     <StyledThumbnail
@@ -613,6 +545,11 @@ const ProductDetailPage = ({ product, error }) => {
                       onClick={() => setSelectedImageIndex(index)}
                     >
                       <Image src={url} alt={`Thumbnail ${index + 1}`} fill style={{ objectFit: 'contain' }} />
+                      {user?.scope === 'ADMIN' && index === 0 && (
+                        <ThumbnailMainImageBadge title="Imagem Principal">
+                          <StarIcon />
+                        </ThumbnailMainImageBadge>
+                      )}
                     </StyledThumbnail>
                   ))}
                 </ThumbnailList>
