@@ -35,7 +35,7 @@ import { CSS } from '@dnd-kit/utilities';
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.000 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    <path d="M18.5 2.5a2.121 3 3 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
   </svg>
 );
 
@@ -82,8 +82,8 @@ const AdminActionWrapper = styled.div`
    top: 1.5rem;
    right: 1.5rem;
    z-index: 10;
-   display: flex; /* Adicionado para alinhar os botões */
-   gap: 10px; /* Espaçamento entre os botões */
+   display: flex;
+   gap: 10px;
  `;
 
 const AdminEditButton = styled(Button)`
@@ -98,8 +98,7 @@ const AdminEditButton = styled(Button)`
    }
  `;
 
-// NOVO ESTILO: Botão de deleção para a página de detalhes do produto
-const AdminDeleteButton = styled(CancelButton)` // Usando CancelButton como base para o estilo
+const AdminDeleteButton = styled(CancelButton)`
    padding: 10px 18px;
    font-size: 0.9rem;
    flex-shrink: 0;
@@ -200,6 +199,44 @@ const ThumbnailMainImageBadge = styled.div`
   justify-content: center;
   z-index: 5;
 `;
+
+const ThumbnailActions = styled.div`
+     position: absolute; /* CORREÇÃO: Adicionado position absolute */
+     top: 5px;
+     left: 5px;
+     right: 5px;
+     display: flex;
+     align-items: center;
+     z-index: 5;
+      
+     button {
+         background-color: rgba(0, 0, 0, 0.6);
+         color: white;
+         border: none;
+         border-radius: 3px;
+         width: 18px;
+         height: 18px;
+         padding: 0;
+         font-size: 0.65rem;
+         cursor: pointer;
+         transition: background-color 0.2s ease;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+
+         &:hover {
+             background-color: rgba(0, 0, 0, 0.8);
+         }
+     }
+
+     .delete-btn {
+         background-color: #dc3545;
+         margin-left: auto; /* CORREÇÃO: Empurra o botão para a direita */
+         &:hover {
+             background-color: #c82333;
+         }
+     }
+ `;
 
 
 const ThumbnailList = styled.div`
@@ -313,7 +350,7 @@ const DescriptionSection = styled.div`
  `;
 
 // Componente Wrapper para SortableItem
-const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage }) => {
+const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, handleDeleteImage }) => {
   const {
     attributes,
     listeners,
@@ -334,17 +371,30 @@ const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage }) =>
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners} // Listeners do dnd-kit aplicados ao StyledThumbnail
+      {...listeners}
       isActive={isActive}
       onClick={onClick}
       isDragging={isDragging}
     >
       <Image src={url} alt={`Thumbnail ${id}`} fill style={{ objectFit: 'contain' }} />
-      {user?.scope === 'ADMIN' && isMainImage && (
-        // Renderiza o badge de imagem principal aqui, agora separado do botão de exclusão
-        <ThumbnailMainImageBadge title="Imagem Principal">
-          <StarIcon />
-        </ThumbnailMainImageBadge>
+      {user?.scope === 'ADMIN' && (
+        <ThumbnailActions>
+          {isMainImage && (
+            <ThumbnailMainImageBadge title="Imagem Principal">
+              <StarIcon />
+            </ThumbnailMainImageBadge>
+          )}
+          <button
+            title="Excluir imagem"
+            className="delete-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteImage(id);
+            }}
+          >
+            X
+          </button>
+        </ThumbnailActions>
       )}
     </StyledThumbnail>
   );
@@ -362,8 +412,8 @@ const ProductDetailPage = ({ product, error }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 125, // Tempo em ms para que o clique se torne um arrasto
-        tolerance: 5, // Distância em pixels para que o arrasto seja ativado
+        delay: 125,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -397,7 +447,6 @@ const ProductDetailPage = ({ product, error }) => {
 
   const mainImageUrl = currentProduct.galleryImageUrls?.[selectedImageIndex] || '/placeholder.png';
 
-  // FUNÇÃO DELETAR PRODUTO INTEIRO
   const handleDeleteProduct = async () => {
     showConfirmation({
       title: 'Confirmar Exclusão',
@@ -406,10 +455,47 @@ const ProductDetailPage = ({ product, error }) => {
         try {
           await apiClient.delete(`/products/delete/${currentProduct.productId}`);
           showNotification({ title: 'Sucesso', message: 'Produto deletado com sucesso!' });
-          router.push('/admin/products'); // Redireciona para a lista de produtos
+          router.push('/admin/products');
         } catch (err) {
           showNotification({ title: 'Erro', message: 'Falha ao deletar o produto.' });
           console.error("Falha ao deletar produto", err);
+        }
+      }
+    });
+  };
+
+  const handleDeleteImage = async (imageUrlToDelete) => {
+    const indexToDelete = currentProduct.galleryImageUrls.indexOf(imageUrlToDelete);
+    if (currentProduct.galleryImageUrls.length <= 1) {
+      showNotification({ title: 'Erro', message: 'Não é possível excluir a única imagem do produto.' });
+      return;
+    }
+
+    showConfirmation({
+      title: 'Confirmar Exclusão de Imagem',
+      message: 'Tem certeza que deseja excluir esta imagem? Esta ação é irreversível.',
+      onConfirm: async () => {
+        try {
+          await apiClient.delete(`/products/${currentProduct.productId}/images/delete`, {
+            data: JSON.stringify(imageUrlToDelete),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const updatedGallery = currentProduct.galleryImageUrls.filter(url => url !== imageUrlToDelete);
+          setCurrentProduct(prev => ({ ...prev, galleryImageUrls: updatedGallery }));
+
+          if (indexToDelete === selectedImageIndex) {
+            setSelectedImageIndex(0);
+          } else if (indexToDelete < selectedImageIndex) {
+            setSelectedImageIndex(prevIndex => prevIndex - 1);
+          }
+
+          showNotification({ title: 'Sucesso', message: 'Imagem excluída com sucesso!' });
+        } catch (err) {
+          console.error("Falha ao excluir imagem", err);
+          showNotification({ title: 'Erro', message: 'Falha ao excluir imagem. Tente novamente.' });
         }
       }
     });
@@ -481,7 +567,6 @@ const ProductDetailPage = ({ product, error }) => {
         <ProductPageContainer>
           {user?.scope === 'ADMIN' && (
             <AdminActionWrapper>
-              {/* ALERTA DE ALTERAÇÃO: Botão de Editar à esquerda e Deletar à direita */}
               <Link href={`/admin/edit/${currentProduct.productId}`} passHref>
                 <AdminEditButton as="a"><EditIcon />Editar</AdminEditButton>
               </Link>
@@ -531,6 +616,7 @@ const ProductDetailPage = ({ product, error }) => {
                           onClick={() => setSelectedImageIndex(index)}
                           user={user}
                           isMainImage={index === 0}
+                          handleDeleteImage={handleDeleteImage}
                         />
                       ))}
                     </ThumbnailList>
