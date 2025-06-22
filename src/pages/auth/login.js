@@ -11,28 +11,37 @@ const LoginContainer = styled.div`
   justify-content: center;
   align-items: center;
   padding: 2rem 1rem;
+  background-color: #f9f9f9; // Adicionado para consistência
+  min-height: calc(100vh - 140px); // Adicionado para consistência
 `;
 
 const LoginForm = styled.form`
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem; // Aumentado para consistência
+  border-radius: 8px; // Aumentado para consistência
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); // Sombra mais suave
   width: 100%;
   max-width: 400px;
   background-color: #fff;
 
   h2 {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem; // Aumentado para consistência
     color: ${({ theme }) => theme.colors.primaryBlue};
   }
   
   p {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     text-align: center;
   }
 `;
+
+const ErrorMessage = styled.p`
+  color: ${({ theme }) => theme.colors.error};
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: bold;
+`;
+
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -55,22 +64,29 @@ const LoginPage = () => {
             <LoginContainer>
                 <LoginForm onSubmit={handleSubmit}>
                     <h2>Login</h2>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    {error && <ErrorMessage>{error}</ErrorMessage>}
+
+                    {/* --- ALTERAÇÃO AQUI --- */}
                     <Input
+                        id="username"
+                        label="Usuário"
                         type="text"
-                        placeholder="Usuário"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
+
+                    {/* --- ALTERAÇÃO AQUI --- */}
                     <Input
+                        id="password"
+                        label="Senha"
                         type="password"
-                        placeholder="Senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    <Button type="submit" style={{ width: '100%' }}>Entrar</Button>
+
+                    <Button type="submit" style={{ width: '100%', marginTop: '1rem', padding: '12px' }}>Entrar</Button>
                     <p>
                         Não tem uma conta? <Link href="/auth/register" style={{ color: '#2A4A87', fontWeight: 'bold' }}>Cadastre-se</Link>
                     </p>

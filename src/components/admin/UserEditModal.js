@@ -1,10 +1,9 @@
-// src/components/admin/UserEditModal.js (VERSÃO COM MÁSCARA DE TELEFONE)
-
 import { useState } from 'react';
 import styled from 'styled-components';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
-import { formatPhoneNumber } from '@/utils/formatters'; // NOVO: Importa a função
+import CancelButton from '@/components/common/CancelButton';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -17,18 +16,19 @@ const ModalBackdrop = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 `;
 
 const ModalContent = styled.div`
   background: white;
-  padding: 2rem;
+  padding: 2.5rem;
   border-radius: 8px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 500px;
   h2 {
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     text-align: center;
   }
 `;
@@ -36,89 +36,67 @@ const ModalContent = styled.div`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 `;
-
-const Label = styled.label`
-  font-weight: bold;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-  color: #333;
-`;
-
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 `;
 
-const UserEditModal = ({ user, onClose, onSave, title = "Editar Usuário" }) => {
+const UserEditModal = ({ user, onClose, onSave, title = "Editar Perfil" }) => {
     const [formData, setFormData] = useState({
         userId: user.userId,
         name: user.name || '',
         username: user.username || '',
         email: user.email || '',
-        phone: formatPhoneNumber(user.phone) || '', // Formata o valor inicial
-        password: '',
+        phone: formatPhoneNumber(user.phone) || '',
     });
+
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório.';
+        if (!formData.username.trim()) newErrors.username = 'Usuário é obrigatório.';
+        if (!formData.email.trim()) newErrors.email = 'Email é obrigatório.';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        // Aplica a formatação apenas no campo de telefone
-        if (name === 'phone') {
-            setFormData({ ...formData, [name]: formatPhoneNumber(value) });
-        } else {
-            setFormData({ ...formData, [name]: value });
+        let processedValue = name === 'phone' ? formatPhoneNumber(value) : value;
+        setFormData(prev => ({ ...prev, [name]: processedValue }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
         }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!validate()) return;
 
-        // Remove a formatação do telefone antes de enviar para o backend
-        const dataToSave = {
+        const payload = {
             ...formData,
-            phone: formData.phone.replace(/\D/g, '') // Envia apenas os dígitos
+            phone: formData.phone.replace(/\D/g, '')
         };
-
-        const dataToUpdate = Object.fromEntries(
-            Object.entries(dataToSave).filter(([key, value]) => value !== '')
-        );
-
-        onSave(dataToUpdate);
+        onSave(payload);
     };
 
     return (
-        <ModalBackdrop>
+        <ModalBackdrop onClick={onClose}>
             <ModalContent onClick={e => e.stopPropagation()}>
-                <h2>{title}</h2>
                 <Form onSubmit={handleSubmit}>
-                    <Label>Nome Completo</Label>
-                    <Input name="name" value={formData.name} onChange={handleChange} required />
-
-                    <Label>Nome de Usuário</Label>
-                    <Input name="username" value={formData.username} onChange={handleChange} required />
-
-                    <Label>Email</Label>
-                    <Input name="email" type="email" value={formData.email} onChange={handleChange} required />
-
-                    <Label>Telefone</Label>
-                    <Input
-                        name="phone"
-                        type="tel"
-                        placeholder="(xx) xxxxx-xxxx"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        maxLength="15"
-                    />
-
-                    <Label>Nova Senha (opcional)</Label>
-                    <Input name="password" type="password" placeholder="Deixe em branco para não alterar" value={formData.password} onChange={handleChange} />
+                    <h2>{title}</h2>
+                    <Input id="edit-name" name="name" label="Nome Completo" value={formData.name} onChange={handleChange} required error={errors.name} />
+                    <Input id="edit-username" name="username" label="Nome de Usuário" value={formData.username} onChange={handleChange} required error={errors.username} />
+                    <Input id="edit-email" name="email" type="email" label="Email" value={formData.email} onChange={handleChange} required error={errors.email} />
+                    <Input id="edit-phone" name="phone" type="tel" label="Telefone (Opcional)" value={formData.phone} onChange={handleChange} maxLength="15" />
 
                     <ButtonContainer>
-                        <Button type="button" onClick={onClose} style={{ backgroundColor: '#6c757d' }}>Cancelar</Button>
+                        <CancelButton type="button" onClick={onClose}>Cancelar</CancelButton>
                         <Button type="submit">Salvar Alterações</Button>
                     </ButtonContainer>
                 </Form>
