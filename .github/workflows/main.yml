@@ -44,12 +44,10 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }} # Pega o usuário da EC2 dos secrets
           key: ${{ secrets.AWS_EC2_SSH_PRIVATE_KEY }} # Pega a chave SSH dos secrets
           script: |
-            # Comandos que serão executados na sua instância EC2
-            
             # 1. Baixa a imagem mais recente do Docker Hub
             docker pull matteusmoreno/casa-moreno-frontend:latest
             
-            # 2. Para o container atual, se ele estiver rodando (o '|| true' evita erros se o container não existir)
+            # 2. Para o container atual, se ele estiver rodando
             docker stop casa-moreno-frontend-container || true
             
             # 3. Remove o container antigo
