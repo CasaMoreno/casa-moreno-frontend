@@ -267,6 +267,11 @@ const Navbar = () => {
     setIsUserMenuOpen(false);
   };
 
+  // --- ALTERAÇÃO AQUI ---
+  // Extrai o primeiro nome do nome completo do usuário.
+  // O '?' (optional chaining) evita erros se 'userData' ou 'userData.name' for nulo.
+  const firstName = userData?.name.split(' ')[0];
+
   return (
     <>
       <Backdrop isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(false)} />
@@ -286,16 +291,15 @@ const Navbar = () => {
         <DesktopLinksContainer>
           {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
-              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {userData.name} ▼</UserMenuButton>
+              {/* --- ALTERAÇÃO AQUI --- */}
+              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {firstName} ▼</UserMenuButton>
               <DropdownMenu isOpen={isUserMenuOpen}>
-                {/* Updated DropdownItem for "Meu Painel" with icon */}
                 <Link href={getDashboardPath()} passHref legacyBehavior>
                   <DropdownItem onClick={() => setIsUserMenuOpen(false)}>
                     <PanelIcon />
                     <span>Meu Painel</span>
                   </DropdownItem>
                 </Link>
-                {/* Updated DropdownItem for "Sair" with icon */}
                 <DropdownItem onClick={handleLogout}>
                   <LogoutIcon />
                   <span>Sair</span>
@@ -317,7 +321,8 @@ const Navbar = () => {
         <MobileMenu isOpen={isMobileMenuOpen}>
           <MenuHeader>
             <LogoText>Casa Moreno</LogoText>
-            {user && userData && <UserGreeting>Olá, {userData.name}</UserGreeting>}
+            {/* --- ALTERAÇÃO AQUI --- */}
+            {user && userData && <UserGreeting>Olá, {firstName}</UserGreeting>}
           </MenuHeader>
 
           <MenuSection>
