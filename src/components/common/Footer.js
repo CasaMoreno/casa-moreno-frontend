@@ -11,7 +11,7 @@ const FooterContainer = styled.footer`
 const Footer = () => {
     return (
         <FooterContainer>
-            <p>&copy; {new Date().getFullYear()} Casa Moreno. Todos os direitos reservados. TESTE WORKFLOW</p>
+            <p>&copy; {new Date().getFullYear()} Casa Moreno. Todos os direitos reservados.</p>
         </FooterContainer>
     );
 };
