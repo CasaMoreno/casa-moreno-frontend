@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import Link from 'next/link';
-import apiClient from '@/api/axios'; // Importar apiClient para pegar a baseURL
+import apiClient from '@/api/axios';
 
 const LoginContainer = styled.div`
   display: flex;
@@ -42,8 +42,6 @@ const ErrorMessage = styled.p`
   margin-bottom: 1rem;
   font-weight: bold;
 `;
-
-// --- INÍCIO DAS ALTERAÇÕES ---
 
 const Separator = styled.div`
   display: flex;
@@ -102,7 +100,6 @@ const GoogleIcon = () => (
         <path fill="none" d="M0 0h48v48H0z"></path>
     </svg>
 );
-// --- FIM DAS ALTERAÇÕES ---
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -110,8 +107,8 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const { login } = useAuth();
 
-    // Constrói a URL de login do Google dinamicamente
-    const googleLoginUrl = `${apiClient.defaults.baseURL}/oauth2/authorization/google`;
+    // Adicionado o parâmetro "?prompt=select_account"
+    const googleLoginUrl = `${apiClient.defaults.baseURL}/oauth2/authorization/google?prompt=select_account`;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -132,15 +129,11 @@ const LoginPage = () => {
                     <Input id="username" label="Usuário ou E-mail" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
                     <Input id="password" label="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     <Button type="submit" style={{ width: '100%', marginTop: '1rem', padding: '12px' }}>Entrar</Button>
-
-                    {/* --- INÍCIO DAS ALTERAÇÕES --- */}
                     <Separator>ou</Separator>
                     <GoogleButton href={googleLoginUrl}>
                         <GoogleIcon />
                         Entrar com o Google
                     </GoogleButton>
-                    {/* --- FIM DAS ALTERAÇÕES --- */}
-
                     <p>
                         Não tem uma conta? <Link href="/auth/register" style={{ color: '#2A4A87', fontWeight: 'bold' }}>Cadastre-se</Link>
                     </p>
