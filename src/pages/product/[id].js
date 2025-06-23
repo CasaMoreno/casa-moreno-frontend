@@ -201,7 +201,7 @@ const ThumbnailMainImageBadge = styled.div`
 `;
 
 const ThumbnailActions = styled.div`
-     position: absolute; /* CORREÇÃO: Adicionado position absolute */
+     position: absolute;
      top: 5px;
      left: 5px;
      right: 5px;
@@ -231,7 +231,7 @@ const ThumbnailActions = styled.div`
 
      .delete-btn {
          background-color: #dc3545;
-         margin-left: auto; /* CORREÇÃO: Empurra o botão para a direita */
+         margin-left: auto;
          &:hover {
              background-color: #c82333;
          }
@@ -349,6 +349,19 @@ const DescriptionSection = styled.div`
    }
  `;
 
+// ATUALIZAÇÃO: Adicionado este novo componente para o texto de aviso
+const DisclaimerText = styled.p`
+  font-size: 0.8rem;
+  color: #777;
+  text-align: center;
+  margin-top: 1rem;
+  font-style: italic;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+`;
+
 // Componente Wrapper para SortableItem
 const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, handleDeleteImage }) => {
   const {
@@ -408,7 +421,6 @@ const ProductDetailPage = ({ product, error }) => {
   const [currentProduct, setCurrentProduct] = useState(product);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // DND-KIT Hooks
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -664,9 +676,16 @@ const ProductDetailPage = ({ product, error }) => {
               </PricingBlock>
 
               <p>Estoque: <strong>{currentProduct.stockStatus || 'Consulte na loja'}</strong></p>
+
               <a href={currentProduct.affiliateLink} target="_blank" rel="noopener noreferrer">
                 <AffiliateButton>Ver Oferta na Loja do Parceiro</AffiliateButton>
               </a>
+
+              {/* ATUALIZAÇÃO: Adicionado o texto de aviso aqui */}
+              <DisclaimerText>
+                Atenção: Preços e informações de estoque podem sofrer pequenas alterações no site do parceiro devido ao tempo de sincronização. Sempre confirme os detalhes na página de destino.
+              </DisclaimerText>
+
             </DetailsColumn>
           </MainLayout>
 
