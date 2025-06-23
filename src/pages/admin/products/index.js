@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'; // Adicionado useRef
+import { useState, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 import { useNotification } from '@/hooks/useNotification';
+import SyncReportModal from '@/components/admin/SyncReportModal';
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -37,13 +38,25 @@ const HeaderActions = styled.div`
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+
+  // ATUALIZAÇÃO DE RESPONSIVIDADE:
+  // Em telas móveis, os botões de ação agora ficam empilhados e ocupam 100% da largura.
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+
+    & > a, & > button {
+      width: 100%;
+    }
+  }
 `;
 
-// Estilo para o botão de sincronização para destacá-lo
+// ATUALIZAÇÃO DE COR: Botão de sincronização agora é verde.
 const SyncButton = styled(Button)`
-    background-color: ${({ theme }) => theme.colors.primaryPurple};
+    background-color: #28a745;
     &:hover:not(:disabled) {
-        background-color: #4a2d6e;
+        background-color: #218838;
     }
 `;
 
@@ -178,7 +191,12 @@ const ProductsManagementPage = ({ initialProducts }) => {
 
     const [isSyncing, setIsSyncing] = useState(false);
     const router = useRouter();
-    const syncIntervalRef = useRef(null); // Para guardar a referência do intervalo de polling
+    const syncIntervalRef = useRef(null);
+
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [syncReport, setSyncReport] = useState('');
+    const [syncError, setSyncError] = useState('');
+
 
     const groupedAndSortedProducts = useMemo(() => {
         const grouped = products.reduce((acc, product) => {
@@ -207,17 +225,17 @@ const ProductsManagementPage = ({ initialProducts }) => {
         });
     };
 
-    // LÓGICA DE SINCRONIZAÇÃO ATUALIZADA
     const handleSyncProducts = async () => {
         setIsSyncing(true);
+        setSyncReport('');
+        setSyncError('');
         showNotification({
             title: 'Sincronização Iniciada',
-            message: 'O processo pode levar vários minutos. A página será recarregada automaticamente ao final.',
+            message: 'O processo pode levar vários minutos. Um relatório será exibido ao final.',
             type: 'info'
         });
 
         try {
-            // Etapa 1: Iniciar a sincronização e obter o ID da tarefa
             const startResponse = await apiClient.post('/products/start-sync');
             const { taskId } = startResponse.data;
 
@@ -225,31 +243,22 @@ const ProductsManagementPage = ({ initialProducts }) => {
                 throw new Error('Não foi possível obter um ID para a tarefa de sincronização.');
             }
 
-            // Etapa 2: Iniciar o polling para verificar o status
             syncIntervalRef.current = setInterval(async () => {
                 try {
                     const statusResponse = await apiClient.get(`/products/sync-status/${taskId}`);
-                    const { status, error } = statusResponse.data;
+                    const { status, report, error } = statusResponse.data;
 
                     if (status === 'COMPLETED') {
                         clearInterval(syncIntervalRef.current);
                         setIsSyncing(false);
-                        showNotification({
-                            title: 'Sincronização Concluída!',
-                            message: 'Os produtos foram atualizados. A página será recarregada.',
-                            type: 'success'
-                        });
-                        setTimeout(() => router.reload(), 2000);
+                        setSyncReport(report);
+                        setIsReportModalOpen(true);
                     } else if (status === 'FAILED') {
                         clearInterval(syncIntervalRef.current);
                         setIsSyncing(false);
-                        showNotification({
-                            title: 'Erro na Sincronização',
-                            message: error || 'Ocorreu uma falha no processo de sincronização.',
-                            type: 'error'
-                        });
+                        setSyncError(error || 'Ocorreu uma falha no processo de sincronização.');
+                        setIsReportModalOpen(true);
                     }
-                    // Se o status for 'RUNNING', não faz nada e espera a próxima verificação.
                 } catch (pollError) {
                     clearInterval(syncIntervalRef.current);
                     setIsSyncing(false);
@@ -260,7 +269,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
                         type: 'error'
                     });
                 }
-            }, 5000); // Verifica a cada 5 segundos
+            }, 5000);
 
         } catch (startError) {
             setIsSyncing(false);
@@ -301,8 +310,20 @@ const ProductsManagementPage = ({ initialProducts }) => {
         }
     };
 
+    const handleCloseReportModal = () => {
+        setIsReportModalOpen(false);
+        router.reload();
+    };
+
     return (
         <Layout>
+            <SyncReportModal
+                isOpen={isReportModalOpen}
+                onClose={handleCloseReportModal}
+                report={syncReport}
+                error={syncError}
+            />
+
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Produtos</PageTitle>
