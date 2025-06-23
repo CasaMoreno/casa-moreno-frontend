@@ -3,6 +3,7 @@ import axios from 'axios';
 const apiClient = axios.create({
     // ALTERAÇÃO AQUI: Apontando para o seu novo backend na AWS
     baseURL: 'https://api.casa-moreno.com',
+    //baseURL: 'http://localhost:8085',
     headers: {
         'Content-Type': 'application/json',
     },
