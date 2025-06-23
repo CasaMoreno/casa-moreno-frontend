@@ -1,8 +1,8 @@
-// src/pages/admin/products/index.js
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react'; // Adicionado useRef
 import styled from 'styled-components';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
@@ -39,18 +39,23 @@ const HeaderActions = styled.div`
   flex-wrap: wrap;
 `;
 
+// Estilo para o botão de sincronização para destacá-lo
+const SyncButton = styled(Button)`
+    background-color: ${({ theme }) => theme.colors.primaryPurple};
+    &:hover:not(:disabled) {
+        background-color: #4a2d6e;
+    }
+`;
+
 const PageTitle = styled.h1``;
-
 const TableWrapper = styled.div`
-  overflow-x: auto; /* Mantido para rolagem horizontal */
+  overflow-x: auto;
   transition: max-height 0.3s ease-in-out;
-  max-height: 1000px; /* Valor inicial grande para quando expandido */
-  overflow-y: auto; /* Adicionado scroll vertical */
-  /* REMOVIDO: overflow-x: hidden; foi removido daqui para permitir a rolagem horizontal */
-
-
+  max-height: 1000px;
+  overflow-y: auto;
+  
   &.collapsed {
-    max-height: 0; /* Colapsa o conteúdo */
+    max-height: 0;
   }
 `;
 
@@ -63,7 +68,7 @@ const ProductTable = styled.table`
     padding: 12px;
     text-align: left;
     vertical-align: middle;
-    white-space: nowrap; // Impede que o conteúdo da célula quebre
+    white-space: nowrap;
   }
   th { 
       background-color: #f2f2f2; 
@@ -74,7 +79,7 @@ const ProductTable = styled.table`
   }
   th:nth-child(2), td:nth-child(2) {
     text-align: left;
-    white-space: normal; // Permite que o título do produto quebre a linha
+    white-space: normal;
   }
 `;
 
@@ -111,20 +116,10 @@ const CategoryTitle = styled.h2`
 `;
 
 const ArrowIcon = ({ isCollapsed }) => (
-    <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
 );
-
 
 const SwitchLabel = styled.label`
   position: relative;
@@ -167,10 +162,23 @@ const SwitchInput = styled.input`
     }
 `;
 
-
 const ProductsManagementPage = ({ initialProducts }) => {
     const [products, setProducts] = useState(initialProducts);
     const { showConfirmation, showNotification } = useNotification();
+    const [collapsedCategories, setCollapsedCategories] = useState(() => {
+        const initialCollapsed = new Set();
+        if (Object.keys(initialProducts).length > 1) {
+            const categories = Object.keys(initialProducts).sort();
+            for (let i = 1; i < categories.length; i++) {
+                initialCollapsed.add(categories[i]);
+            }
+        }
+        return initialCollapsed;
+    });
+
+    const [isSyncing, setIsSyncing] = useState(false);
+    const router = useRouter();
+    const syncIntervalRef = useRef(null); // Para guardar a referência do intervalo de polling
 
     const groupedAndSortedProducts = useMemo(() => {
         const grouped = products.reduce((acc, product) => {
@@ -187,16 +195,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
 
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 
-    const [collapsedCategories, setCollapsedCategories] = useState(() => {
-        const initialCollapsed = new Set();
-        if (sortedCategories.length > 1) {
-            for (let i = 1; i < sortedCategories.length; i++) {
-                initialCollapsed.add(sortedCategories[i]);
-            }
-        }
-        return initialCollapsed;
-    });
-
     const toggleCategoryVisibility = (category) => {
         setCollapsedCategories(prev => {
             const newSet = new Set(prev);
@@ -207,6 +205,72 @@ const ProductsManagementPage = ({ initialProducts }) => {
             }
             return newSet;
         });
+    };
+
+    // LÓGICA DE SINCRONIZAÇÃO ATUALIZADA
+    const handleSyncProducts = async () => {
+        setIsSyncing(true);
+        showNotification({
+            title: 'Sincronização Iniciada',
+            message: 'O processo pode levar vários minutos. A página será recarregada automaticamente ao final.',
+            type: 'info'
+        });
+
+        try {
+            // Etapa 1: Iniciar a sincronização e obter o ID da tarefa
+            const startResponse = await apiClient.post('/products/start-sync');
+            const { taskId } = startResponse.data;
+
+            if (!taskId) {
+                throw new Error('Não foi possível obter um ID para a tarefa de sincronização.');
+            }
+
+            // Etapa 2: Iniciar o polling para verificar o status
+            syncIntervalRef.current = setInterval(async () => {
+                try {
+                    const statusResponse = await apiClient.get(`/products/sync-status/${taskId}`);
+                    const { status, error } = statusResponse.data;
+
+                    if (status === 'COMPLETED') {
+                        clearInterval(syncIntervalRef.current);
+                        setIsSyncing(false);
+                        showNotification({
+                            title: 'Sincronização Concluída!',
+                            message: 'Os produtos foram atualizados. A página será recarregada.',
+                            type: 'success'
+                        });
+                        setTimeout(() => router.reload(), 2000);
+                    } else if (status === 'FAILED') {
+                        clearInterval(syncIntervalRef.current);
+                        setIsSyncing(false);
+                        showNotification({
+                            title: 'Erro na Sincronização',
+                            message: error || 'Ocorreu uma falha no processo de sincronização.',
+                            type: 'error'
+                        });
+                    }
+                    // Se o status for 'RUNNING', não faz nada e espera a próxima verificação.
+                } catch (pollError) {
+                    clearInterval(syncIntervalRef.current);
+                    setIsSyncing(false);
+                    console.error("Falha ao verificar status da sincronização:", pollError);
+                    showNotification({
+                        title: 'Erro de Comunicação',
+                        message: 'Não foi possível verificar o progresso da sincronização.',
+                        type: 'error'
+                    });
+                }
+            }, 5000); // Verifica a cada 5 segundos
+
+        } catch (startError) {
+            setIsSyncing(false);
+            console.error("Falha ao iniciar a sincronização:", startError);
+            showNotification({
+                title: 'Erro ao Iniciar',
+                message: startError.response?.data?.message || 'Não foi possível iniciar o processo.',
+                type: 'error'
+            });
+        }
     };
 
     const handleDelete = async (productId, productTitle) => {
@@ -237,7 +301,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
         }
     };
 
-
     return (
         <Layout>
             <PageContainer>
@@ -246,6 +309,9 @@ const ProductsManagementPage = ({ initialProducts }) => {
                     <HeaderActions>
                         <Link href="/admin" passHref><Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button></Link>
                         <Link href="/admin/new-product"><Button>Adicionar Novo Produto</Button></Link>
+                        <SyncButton onClick={handleSyncProducts} disabled={isSyncing}>
+                            {isSyncing ? 'Sincronizando...' : 'Sincronizar com Scraper'}
+                        </SyncButton>
                     </HeaderActions>
                 </PageHeader>
 
