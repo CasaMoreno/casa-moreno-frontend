@@ -104,9 +104,9 @@ const DropdownMenu = styled.div`
 `;
 
 const DropdownItem = styled.a`
-  display: flex; /* Changed to flex to align icon and text */
-  align-items: center; /* Center items vertically */
-  gap: 0.5rem; /* Space between icon and text */
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
   padding: 0.75rem 1rem;
   color: ${({ theme }) => theme.colors.darkGray};
   cursor: pointer; font-weight: normal;
@@ -145,6 +145,7 @@ const MobileMenu = styled.div`
   box-shadow: -5px 0 15px rgba(0,0,0,0.2);
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
+  overflow-y: auto;
 
   & > * {
     opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
@@ -162,10 +163,12 @@ const Backdrop = styled.div`
   transition: opacity 0.3s ease, visibility 0.3s ease;
 `;
 
+// ATUALIZAÇÃO: Removido o padding inferior para eliminar espaço extra.
 const MenuHeader = styled.div`
   width: 100%;
   text-align: center;
-  padding: 1rem 0 2rem 0;
+  padding: 1rem 0 0.5rem; // Reduzido o padding inferior
+  flex-shrink: 0;
 `;
 
 const UserGreeting = styled.p`
@@ -174,14 +177,12 @@ const UserGreeting = styled.p`
   margin-top: 0.5rem;
 `;
 
+// ATUALIZAÇÃO: Reduzido o espaçamento para aproximar do header.
 const MenuSection = styled.div`
   width: 100%;
-  padding-top: 1.5rem;
-
-  &:not(:first-of-type) {
-    margin-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
+  margin-top: 0.75rem;      /* Espaço acima da linha separadora */
+  padding-top: 0.75rem;     /* Espaço abaixo da linha separadora */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 
   h4 {
     color: rgba(255, 255, 255, 0.6);
@@ -190,6 +191,7 @@ const MenuSection = styled.div`
     letter-spacing: 1px;
     margin-bottom: 1rem;
     padding-left: 1rem;
+    margin-top: 0; 
   }
 `;
 
@@ -267,9 +269,6 @@ const Navbar = () => {
     setIsUserMenuOpen(false);
   };
 
-  // --- ALTERAÇÃO AQUI ---
-  // Extrai o primeiro nome do nome completo do usuário.
-  // O '?' (optional chaining) evita erros se 'userData' ou 'userData.name' for nulo.
   const firstName = userData?.name.split(' ')[0];
 
   return (
@@ -291,7 +290,6 @@ const Navbar = () => {
         <DesktopLinksContainer>
           {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
-              {/* --- ALTERAÇÃO AQUI --- */}
               <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {firstName} ▼</UserMenuButton>
               <DropdownMenu isOpen={isUserMenuOpen}>
                 <Link href={getDashboardPath()} passHref legacyBehavior>
@@ -321,7 +319,6 @@ const Navbar = () => {
         <MobileMenu isOpen={isMobileMenuOpen}>
           <MenuHeader>
             <LogoText>Casa Moreno</LogoText>
-            {/* --- ALTERAÇÃO AQUI --- */}
             {user && userData && <UserGreeting>Olá, {firstName}</UserGreeting>}
           </MenuHeader>
 
