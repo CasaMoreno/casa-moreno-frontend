@@ -1,4 +1,3 @@
-// src/pages/admin/users/index.js
 import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -82,7 +81,7 @@ const EmptyStateCell = styled.td`
   color: #666;
 `;
 
-const HeaderActions = styled.div` // Adicionado estilo para agrupar botões no cabeçalho
+const HeaderActions = styled.div`
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
@@ -95,10 +94,17 @@ const UsersManagementPage = ({ initialUsers }) => {
     const { user: loggedInAdmin } = useAuth();
     const { showConfirmation, showNotification } = useNotification();
 
+    // --- INÍCIO DA ALTERAÇÃO ---
+    // A lógica de filtragem foi tornada mais robusta.
+    // Agora, se a informação do admin ainda não carregou, a lista fica vazia.
+    // Assim que a informação chega, a lista é filtrada e renderizada corretamente.
     const displayedUsers = useMemo(() => {
-        if (!loggedInAdmin) return users;
+        if (!loggedInAdmin) {
+            return []; // Retorna uma lista vazia enquanto o usuário admin não é carregado
+        }
         return users.filter(user => user.userId !== loggedInAdmin.userId);
     }, [users, loggedInAdmin]);
+    // --- FIM DA ALTERAÇÃO ---
 
 
     const handleDeleteUser = (userId, userName) => {
@@ -107,10 +113,11 @@ const UsersManagementPage = ({ initialUsers }) => {
             message: `Tem certeza que deseja deletar o usuário: "${userName}"?`,
             onConfirm: async () => {
                 try {
-                    await apiClient.delete(`/users/delete/${userId}`);
+                    await apiClient.delete('/users/delete', { params: { userId } });
                     setUsers(users.filter(u => u.userId !== userId));
                     showNotification({ title: 'Sucesso', message: 'Usuário deletado!' });
                 } catch (error) {
+                    console.error("Delete user failed:", error);
                     showNotification({ title: 'Erro', message: 'Falha ao deletar usuário.' });
                 }
             }
@@ -136,10 +143,12 @@ const UsersManagementPage = ({ initialUsers }) => {
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Usuários</PageTitle>
-                    <HeaderActions> {/* Usar HeaderActions para alinhar botões */}
-                        <Link href="/admin" passHref><Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button></Link>
-                        <Link href="/auth/register" passHref> {/* Link para a página de registro, ou crie uma nova em /admin/users/new */}
-                            <Button as="a">Criar Novo Usuário</Button>
+                    <HeaderActions>
+                        <Link href="/admin" passHref>
+                            <Button style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button>
+                        </Link>
+                        <Link href="/auth/register" passHref>
+                            <Button>Criar Novo Usuário</Button>
                         </Link>
                     </HeaderActions>
                 </PageHeader>

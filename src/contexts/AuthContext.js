@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react'; // 1. Importar useCallback
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import apiClient from '@/api/axios';
 import { jwtDecode } from 'jwt-decode';
@@ -18,11 +18,14 @@ export const AuthProvider = ({ children }) => {
         if (decodedToken.exp * 1000 < Date.now()) {
           logout();
         } else {
+          // --- INÍCIO DA ALTERAÇÃO ---
+          // Corrigido para ler "userId" (sem espaço), conforme o token gerado pelo backend.
           setUser({
             username: decodedToken.sub,
-            userId: decodedToken['user id'],
+            userId: decodedToken.userId,
             scope: decodedToken.scope,
           });
+          // --- FIM DA ALTERAÇÃO ---
         }
       } catch (error) {
         console.error("Invalid token");
@@ -44,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser({
         username: decodedToken.sub,
-        userId: decodedToken['user id'],
+        userId: decodedToken.userId, // Corrigido aqui também
         scope: decodedToken.scope,
       });
 
@@ -73,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 2. Envolver a função com useCallback para estabilizá-la
   const handleOauthToken = useCallback((token) => {
     if (typeof token !== 'string') {
       console.error("OAuth token is invalid or missing.");
@@ -89,20 +91,19 @@ export const AuthProvider = ({ children }) => {
 
       setUser({
         username: decodedToken.sub,
-        userId: decodedToken['user id'],
+        userId: decodedToken.userId,
         scope: decodedToken.scope,
       });
 
       router.push('/');
     } catch (error) {
       console.error("Failed to process OAuth token:", error);
-      // Usamos a função de logout aqui para garantir a limpeza
       localStorage.removeItem('authToken');
       document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       setUser(null);
       router.push('/auth/login');
     }
-  }, [router]); // Adicionar router como dependência do useCallback
+  }, [router]);
 
 
   return (
