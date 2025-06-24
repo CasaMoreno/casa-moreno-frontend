@@ -10,24 +10,12 @@ import apiClient from '@/api/axios';
 import Button from '@/components/common/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
-import CancelButton from '@/components/common/CancelButton'; // Importar CancelButton para o estilo do DeleteButton
+import CancelButton from '@/components/common/CancelButton';
+import AiDescriptionModal from '@/components/admin/AiDescriptionModal';
 
 // DND-KIT Imports
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from '@dnd-kit/sortable';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 
@@ -38,24 +26,25 @@ const EditIcon = () => (
     <path d="M18.5 2.5a2.121 3 3 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
   </svg>
 );
-
-const StarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
   </svg>
 );
-
-const ArrowLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 18 9 12 15 6"></polyline>
+const SparkleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+    <path d="M12 3L9.5 8.5L4 11L9.5 13.5L12 19L14.5 13.5L20 11L14.5 8.5L12 3Z" />
+    <path d="M5 3L6 6" />
+    <path d="M18 18L19 21" />
+    <path d="M21 5L18 6" />
+    <path d="M3 19L6 18" />
   </svg>
 );
-
-const ArrowRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"></polyline>
-  </svg>
-);
+const StarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>);
+const ArrowLeftIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>);
+const ArrowRightIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>);
 
 
 const PageWrapper = styled.div`
@@ -78,31 +67,67 @@ const ProductPageContainer = styled.div`
  `;
 
 const AdminActionWrapper = styled.div`
+   display: flex;
+   gap: 8px; /* Espaçamento entre os botões ligeiramente reduzido */
+   flex-wrap: wrap; 
+   justify-content: flex-end;
+
    position: absolute;
    top: 1.5rem;
    right: 1.5rem;
    z-index: 10;
-   display: flex;
-   gap: 10px;
- `;
 
+   @media (max-width: 900px) {
+    position: static;
+    justify-content: center;
+    margin-bottom: 2rem;
+    width: 100%;
+   }
+`;
+
+// --- INÍCIO DA ALTERAÇÃO (Botões Menores) ---
 const AdminEditButton = styled(Button)`
-   padding: 10px 18px;
+   padding: 10px 15px; /* Padding horizontal um pouco menor */
    font-size: 0.9rem;
    background-color: ${({ theme }) => theme.colors.darkGray};
-   flex-shrink: 0;
    transition: background-color 0.2s ease-in-out;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
 
    &:hover {
      background-color: #555;
    }
- `;
+
+   /* Em telas pequenas, os botões ficam ainda mais compactos */
+   @media (max-width: 900px) {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+   }
+`;
+
+const AiButton = styled(AdminEditButton)`
+    background-color: ${({ theme }) => theme.colors.primaryPurple};
+    
+    &:hover {
+     background-color: #4a2d6e;
+   }
+`;
 
 const AdminDeleteButton = styled(CancelButton)`
-   padding: 10px 18px;
+   padding: 10px 15px; /* Padding horizontal um pouco menor */
    font-size: 0.9rem;
-   flex-shrink: 0;
- `;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+
+   /* Em telas pequenas, os botões ficam ainda mais compactos */
+   @media (max-width: 900px) {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+   }
+`;
+// --- FIM DA ALTERAÇÃO (Botões Menores) ---
 
 const Breadcrumbs = styled.div`
    margin-bottom: 2rem;
@@ -114,7 +139,11 @@ const Breadcrumbs = styled.div`
      &:hover { text-decoration: underline; }
    }
    span { margin: 0 0.5rem; }
- `;
+
+   @media (max-width: 900px) {
+    margin-bottom: 1rem;
+   }
+`;
 
 const MainLayout = styled.div`
    display: grid;
@@ -349,7 +378,6 @@ const DescriptionSection = styled.div`
    }
  `;
 
-// ATUALIZAÇÃO: Adicionado este novo componente para o texto de aviso
 const DisclaimerText = styled.p`
   font-size: 0.8rem;
   color: #777;
@@ -362,7 +390,6 @@ const DisclaimerText = styled.p`
   line-height: 1.5;
 `;
 
-// Componente Wrapper para SortableItem
 const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, handleDeleteImage }) => {
   const {
     attributes,
@@ -420,6 +447,7 @@ const ProductDetailPage = ({ product, error }) => {
   const { showConfirmation, showNotification } = useNotification();
   const [currentProduct, setCurrentProduct] = useState(product);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -448,6 +476,20 @@ const ProductDetailPage = ({ product, error }) => {
       setSelectedImageIndex(0);
     }
   }, [product]);
+
+  const handleSaveDescription = async (newDescription) => {
+    try {
+      await apiClient.put('/products/update', {
+        productId: currentProduct.productId,
+        fullDescription: newDescription
+      });
+      setCurrentProduct(prev => ({ ...prev, fullDescription: newDescription }));
+      showNotification({ title: 'Sucesso!', message: 'Descrição do produto atualizada.' });
+    } catch (err) {
+      console.error("Failed to save description", err);
+      showNotification({ title: 'Erro', message: 'Não foi possível salvar a descrição.' });
+    }
+  };
 
   if (error) return <Layout><p style={{ textAlign: 'center', marginTop: '3rem' }}>{error}</p></Layout>
   if (router.isFallback || !currentProduct) return <Layout><div>Carregando...</div></Layout>;
@@ -571,26 +613,45 @@ const ProductDetailPage = ({ product, error }) => {
 
   return (
     <Layout>
+      {isAiModalOpen && (
+        <AiDescriptionModal
+          originalDescription={currentProduct.fullDescription}
+          onSave={handleSaveDescription}
+          onClose={() => setIsAiModalOpen(false)}
+        />
+      )}
+
       <Head>
         <title>{`${currentProduct.productTitle} - Casa Moreno`}</title>
         <meta name="description" content={`Detalhes sobre ${currentProduct.productTitle}`} />
       </Head>
       <PageWrapper>
         <ProductPageContainer>
-          {user?.scope === 'ADMIN' && (
-            <AdminActionWrapper>
-              <Link href={`/admin/edit/${currentProduct.productId}`} passHref>
-                <AdminEditButton as="a"><EditIcon />Editar</AdminEditButton>
-              </Link>
-              <AdminDeleteButton onClick={handleDeleteProduct}>Deletar</AdminDeleteButton>
-            </AdminActionWrapper>
-          )}
 
           <Breadcrumbs>
             <Link href="/">Home</Link>
             {currentProduct.productCategory && <><span>&gt;</span><Link href={`/products/${currentProduct.productCategory.toLowerCase()}`}>{currentProduct.productCategory}</Link></>}
             {currentProduct.productSubcategory && <><span>&gt;</span>{currentProduct.productSubcategory}</>}
           </Breadcrumbs>
+
+          {user?.scope === 'ADMIN' && (
+            <AdminActionWrapper>
+              <AiButton onClick={() => setIsAiModalOpen(true)}>
+                <SparkleIcon />
+                Gerar Descrição
+              </AiButton>
+              <Link href={`/admin/edit/${currentProduct.productId}`} passHref>
+                <AdminEditButton>
+                  <EditIcon />
+                  Editar
+                </AdminEditButton>
+              </Link>
+              <AdminDeleteButton onClick={handleDeleteProduct}>
+                <TrashIcon />
+                Deletar
+              </AdminDeleteButton>
+            </AdminActionWrapper>
+          )}
 
           <MainLayout>
             <GalleryColumn>
@@ -681,7 +742,6 @@ const ProductDetailPage = ({ product, error }) => {
                 <AffiliateButton>Ver Oferta na Loja do Parceiro</AffiliateButton>
               </a>
 
-              {/* ATUALIZAÇÃO: Adicionado o texto de aviso aqui */}
               <DisclaimerText>
                 Atenção: Preços e informações de estoque podem sofrer pequenas alterações no site do parceiro devido ao tempo de sincronização. Sempre confirme os detalhes na página de destino.
               </DisclaimerText>
