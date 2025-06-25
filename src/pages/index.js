@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import Head from 'next/head';
+import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 import apiClient from '@/api/axios';
 import Carousel from '@/components/common/Carousel';
@@ -28,34 +29,42 @@ const TagIcon = () => (
 );
 
 const HeroSection = styled.section`
-  background-image: url('/casa-moreno-banner2.jpeg');
-  background-size: cover;
-  background-position: center center;
+  position: relative; 
+  width: 100%;
   min-height: 60vh;
+  overflow: hidden; 
 
   @media (max-width: 1024px) {
     min-height: 50vh;
   }
 
   @media (max-width: 768px) {
-    background-position: right center;
     min-height: 45vh;
   }
 `;
 
+const HeroImage = styled(Image)`
+  object-fit: cover; 
+  object-position: center center; 
+
+  @media (max-width: 768px) {
+    object-position: right center; 
+  }
+`;
+
 const Section = styled.section`
-  padding: 4rem 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
   background-color: ${({ theme, $isWhite }) => $isWhite ? 'white' : theme.colors.lightGray};
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
-    padding: 3rem 1rem;
+    padding: 2rem 1rem;
   }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 2.8rem;
-  margin-bottom: 3rem; 
+  margin-bottom: 2.5rem; 
   color: ${({ theme }) => theme.colors.darkGray};
 `;
 
@@ -92,8 +101,6 @@ const CategoryGrid = styled.div`
   margin: 0 auto;
 `;
 
-// --- INÍCIO DA CORREÇÃO ---
-// O CategoryCard foi revertido para ser uma 'div' em vez de 'a'
 const CategoryCard = styled.div`
   display: block;
   background: white;
@@ -111,9 +118,12 @@ const CategoryCard = styled.div`
     box-shadow: 0 10px 25px rgba(42, 74, 135, 0.15);
     border-color: ${({ theme }) => theme.colors.primaryBlue};
   }
-`;
-// --- FIM DA CORREÇÃO ---
 
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1.5rem; 
+    font-size: 1.1rem; 
+  }
+`;
 
 const HomePage = ({ promotionalProducts, categories }) => {
   return (
@@ -123,10 +133,16 @@ const HomePage = ({ promotionalProducts, categories }) => {
         <meta name="description" content="Explore as melhores ofertas em smartphones, notebooks e eletrônicos. A Casa Moreno conecta você às melhores oportunidades." />
       </Head>
 
-      <HeroSection />
+      <HeroSection>
+        <HeroImage
+          src="/casa-moreno-banner2.jpeg"
+          alt="Banner da Casa Moreno com eletrônicos"
+          layout="fill"
+          priority
+        />
+      </HeroSection>
 
       <Section>
-        <SectionTitle>Ofertas em Destaque</SectionTitle>
         <Carousel products={promotionalProducts} />
       </Section>
 
@@ -134,7 +150,6 @@ const HomePage = ({ promotionalProducts, categories }) => {
         <SectionTitle>Navegue por Categorias</SectionTitle>
         <CategoryGrid>
           {categories.map(cat => (
-            // O Link do Next.js agora envolve corretamente o CategoryCard (que é uma div)
             <Link key={cat} href={`/products/${cat.toLowerCase()}`} passHref>
               <CategoryCard>{cat}</CategoryCard>
             </Link>
@@ -142,8 +157,9 @@ const HomePage = ({ promotionalProducts, categories }) => {
         </CategoryGrid>
       </Section>
 
+      {/* --- INÍCIO DA ALTERAÇÃO --- */}
       <Section>
-        <SectionTitle>Nossos Diferenciais</SectionTitle>
+        {/* O <SectionTitle> foi removido daqui */}
         <FeaturesGrid>
           <FeatureCard>
             <ShieldIcon />
@@ -162,6 +178,7 @@ const HomePage = ({ promotionalProducts, categories }) => {
           </FeatureCard>
         </FeaturesGrid>
       </Section>
+      {/* --- FIM DA ALTERAÇÃO --- */}
     </Layout>
   );
 };
