@@ -6,170 +6,162 @@ import apiClient from '@/api/axios';
 import Carousel from '@/components/common/Carousel';
 import Button from '@/components/common/Button';
 
+// --- Ícones para a Seção de Diferenciais ---
+const TruckIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11" />
+    <path d="M14 9h7c.6 0 1 .4 1 1v4c0 .6-.4 1-1 1h-1l-3 4H5l-3-4H1" />
+    <circle cx="7.5" cy="18.5" r="2.5" /><circle cx="17.5" cy="18.5" r="2.5" />
+  </svg>
+);
+const ShieldIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
+const TagIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.5 22a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" /><path d="M12.5 14a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" />
+    <path d="m2 2 20 20" /><path d="M14 4h6v6" />
+  </svg>
+);
+
 const HeroSection = styled.section`
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/hero-banner.png');
-  background-size: cover; 
-  background-position: center center; 
-  color: ${({ theme }) => theme.colors.white};
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 8rem 2rem;
+  background-image: url('/casa-moreno-banner2.jpeg');
+  background-size: cover;
+  background-position: center center;
+  min-height: 60vh;
 
-  h1 {
-    font-size: 3.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+  @media (max-width: 1024px) {
+    min-height: 50vh;
   }
 
-  p {
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin-bottom: 2rem;
+  @media (max-width: 768px) {
+    background-position: right center;
+    min-height: 45vh;
   }
-  
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    padding: 4rem 1rem;
-    h1 {
-      font-size: 2.5rem;
-    }
-    p {
-      font-size: 1rem;
-    }
-  }
-`;
-
-const HeroButton = styled(Button)`
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  text-transform: uppercase;
 `;
 
 const Section = styled.section`
   padding: 4rem 2rem;
   text-align: center;
+  background-color: ${({ theme, $isWhite }) => $isWhite ? 'white' : theme.colors.lightGray};
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
-    padding: 2.5rem 1rem;
+    padding: 3rem 1rem;
   }
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 2.5rem;
-  margin-bottom: 3rem;
+  font-size: 2.8rem;
+  margin-bottom: 3rem; 
   color: ${({ theme }) => theme.colors.darkGray};
-  
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    font-size: 2rem;
-  }
+`;
+
+const FeaturesGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+`;
+
+const FeatureCard = styled.div`
+    padding: 2rem;
+    border-radius: 8px;
+    color: ${({ theme }) => theme.colors.primaryBlue};
+    
+    h3 {
+        font-size: 1.4rem;
+        color: ${({ theme }) => theme.colors.darkGray};
+        margin: 1rem 0;
+    }
+    p {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+    }
 `;
 
 const CategoryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
-
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    gap: 1rem;
-  }
 `;
 
+// --- INÍCIO DA CORREÇÃO ---
+// O CategoryCard foi revertido para ser uma 'div' em vez de 'a'
 const CategoryCard = styled.div`
+  display: block;
   background: white;
   padding: 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  font-size: 1.5rem;
+  border: 1px solid #e0e0e0;
+  font-size: 1.4rem;
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primaryBlue};
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    font-size: 1.2rem;
-    padding: 1.5rem;
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(42, 74, 135, 0.15);
+    border-color: ${({ theme }) => theme.colors.primaryBlue};
   }
 `;
+// --- FIM DA CORREÇÃO ---
 
-const ValuePropsContainer = styled.section`
-  display: flex;
-  justify-content: space-around;
-  background-color: #ffffff;
-  padding: 3rem 2rem;
-  text-align: center;
-  flex-wrap: wrap;
-  gap: 2rem;
-
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    flex-direction: column;
-    align-items: center;
-    padding: 2.5rem 1rem;
-  }
-`;
-
-const ValueProp = styled.div`
-  max-width: 250px;
-  h4 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
-`;
 
 const HomePage = ({ promotionalProducts, categories }) => {
   return (
     <Layout>
       <Head>
-        <title>Casa Moreno - A melhor loja do mundo</title>
+        <title>Casa Moreno - Tecnologia e Inovação para seu Lar</title>
+        <meta name="description" content="Explore as melhores ofertas em smartphones, notebooks e eletrônicos. A Casa Moreno conecta você às melhores oportunidades." />
       </Head>
 
-      <HeroSection>
-        <h1>Tecnologia e Inovação ao seu Alcance</h1>
-        <p>Explore nossa seleção de smartphones, laptops e eletrônicos com os melhores preços e condições.</p>
-        <Link href="/offers">
-          <HeroButton>Ver Ofertas</HeroButton>
-        </Link>
-      </HeroSection>
+      <HeroSection />
 
       <Section>
+        <SectionTitle>Ofertas em Destaque</SectionTitle>
+        <Carousel products={promotionalProducts} />
+      </Section>
+
+      <Section $isWhite>
         <SectionTitle>Navegue por Categorias</SectionTitle>
         <CategoryGrid>
           {categories.map(cat => (
-            <Link key={cat} href={`/products/${cat.toLowerCase()}`}>
+            // O Link do Next.js agora envolve corretamente o CategoryCard (que é uma div)
+            <Link key={cat} href={`/products/${cat.toLowerCase()}`} passHref>
               <CategoryCard>{cat}</CategoryCard>
             </Link>
           ))}
         </CategoryGrid>
       </Section>
 
-      <Section style={{ backgroundColor: '#f9f9f9' }}>
-        <SectionTitle>Nossas Ofertas</SectionTitle>
-        <Carousel products={promotionalProducts} />
+      <Section>
+        <SectionTitle>Nossos Diferenciais</SectionTitle>
+        <FeaturesGrid>
+          <FeatureCard>
+            <ShieldIcon />
+            <h3>Compra Segura</h3>
+            <p>Redirecionamos você para ambientes de compra seguros e certificados das maiores lojas do Brasil.</p>
+          </FeatureCard>
+          <FeatureCard>
+            <TagIcon />
+            <h3>Preços Competitivos</h3>
+            <p>Nosso sistema busca e organiza as melhores ofertas para que você sempre faça um bom negócio.</p>
+          </FeatureCard>
+          <FeatureCard>
+            <TruckIcon />
+            <h3>Entrega Garantida</h3>
+            <p>A entrega é de responsabilidade dos nossos parceiros, grandes varejistas com logística em todo o país.</p>
+          </FeatureCard>
+        </FeaturesGrid>
       </Section>
-
-      <ValuePropsContainer>
-        <ValueProp>
-          <h4>✓ Compra Segura</h4>
-          <p>Ambiente protegido com os melhores certificados de segurança.</p>
-        </ValueProp>
-        <ValueProp>
-          <h4>✓ Entrega Rápida</h4>
-          <p>Receba seus produtos no conforto da sua casa com agilidade.</p>
-        </ValueProp>
-        <ValueProp>
-          <h4>✓ Garantia de Qualidade</h4>
-          <p>Trabalhamos apenas com as melhores marcas e fornecedores.</p>
-        </ValueProp>
-      </ValuePropsContainer>
     </Layout>
   );
 };
