@@ -9,6 +9,45 @@ import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import apiClient from '@/api/axios';
 import CancelButton from '@/components/common/CancelButton';
+import AiDescriptionModal from '@/components/admin/AiDescriptionModal'; // 1. Importar o Modal
+import { useNotification } from '@/hooks/useNotification'; // 2. Importar o hook de notificação
+
+// --- INÍCIO DAS ALTERAÇÕES ---
+
+// Ícone para o botão de IA
+const SparkleIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+        <path d="M12 3L9.5 8.5L4 11L9.5 13.5L12 19L14.5 13.5L20 11L14.5 8.5L12 3Z" />
+        <path d="M5 3L6 6" />
+        <path d="M18 18L19 21" />
+        <path d="M21 5L18 6" />
+        <path d="M3 19L6 18" />
+    </svg>
+);
+
+// Novo container para alinhar o título e o botão
+const LabelWithButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Remove a margem inferior padrão para o container não ter margem dupla */
+  margin-bottom: -0.5rem; 
+`;
+
+// Botão para acionar a IA
+const AiButton = styled(Button)`
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background-color: ${({ theme }) => theme.colors.primaryPurple};
+    display: inline-flex;
+    align-items: center;
+    
+    &:hover {
+     background-color: #4a2d6e;
+   }
+`;
+// --- FIM DAS ALTERAÇÕES ---
+
 
 const EditPageContainer = styled.div`
   max-width: 800px;
@@ -54,11 +93,10 @@ const StyledSelect = styled.select`
   background-color: white;
 `;
 
-// --- INÍCIO DA ALTERAÇÃO ---
 const StyledTextarea = styled.textarea`
   width: 100%;
-  height: 300px; /* Altura aumentada */
-  min-height: 250px; /* Altura aumentada */
+  height: 300px; 
+  min-height: 250px; 
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: ${({ theme }) => theme.borderRadius};
@@ -67,7 +105,6 @@ const StyledTextarea = styled.textarea`
   resize: vertical;
   margin-bottom: 1rem;
 `;
-// --- FIM DA ALTERAÇÃO ---
 
 const CheckboxContainer = styled.label`
   display: flex;
@@ -85,6 +122,10 @@ const EditProductPage = ({ product }) => {
     const router = useRouter();
     const [isPromotional, setIsPromotional] = useState(product.isPromotional || false);
 
+    // --- INÍCIO DAS ALTERAÇÕES ---
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false); // 3. Estado para controlar o modal
+    const { showNotification } = useNotification(); // 4. Hook para mostrar notificações
+
     const imageUrl = product.galleryImageUrls && product.galleryImageUrls.length > 0
         ? product.galleryImageUrls[0]
         : '/placeholder.png';
@@ -92,6 +133,14 @@ const EditProductPage = ({ product }) => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    // 5. Função para salvar a descrição gerada pela IA no estado do formulário
+    const handleSaveDescriptionFromAI = (newDescription) => {
+        setFormData(prev => ({ ...prev, fullDescription: newDescription }));
+        showNotification({ title: 'Sucesso!', message: 'Descrição atualizada. Lembre-se de salvar as alterações no produto.' });
+    };
+
+    // --- FIM DAS ALTERAÇÕES ---
 
     const handlePromotionalChange = async () => {
         const newStatus = !isPromotional;
@@ -123,6 +172,17 @@ const EditProductPage = ({ product }) => {
 
     return (
         <Layout>
+            {/* --- INÍCIO DAS ALTERAÇÕES --- */}
+            {/* 6. Renderização condicional do Modal de IA */}
+            {isAiModalOpen && (
+                <AiDescriptionModal
+                    originalDescription={formData.fullDescription}
+                    onSave={handleSaveDescriptionFromAI}
+                    onClose={() => setIsAiModalOpen(false)}
+                />
+            )}
+            {/* --- FIM DAS ALTERAÇÕES --- */}
+
             <EditPageContainer>
                 <h1>Editar Produto</h1>
 
@@ -161,7 +221,17 @@ const EditProductPage = ({ product }) => {
                     <label>Link Afiliado</label>
                     <Input name="affiliateLink" value={formData.affiliateLink || ''} onChange={handleChange} />
 
-                    <label>Descrição Completa</label>
+                    {/* --- INÍCIO DAS ALTERAÇÕES --- */}
+                    {/* 7. Novo container para o título e o botão */}
+                    <LabelWithButtonContainer>
+                        <label>Descrição Completa</label>
+                        <AiButton type="button" onClick={() => setIsAiModalOpen(true)}>
+                            <SparkleIcon />
+                            Gerar com IA
+                        </AiButton>
+                    </LabelWithButtonContainer>
+                    {/* --- FIM DAS ALTERAÇÕES --- */}
+
                     <StyledTextarea
                         name="fullDescription"
                         value={formData.fullDescription || ''}
