@@ -1,5 +1,3 @@
-// src/components/common/Carousel.js (VERSÃO COM SLIDE CLICÁVEL)
-
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, EffectCoverflow } from 'swiper/modules';
 import styled from 'styled-components';
@@ -11,40 +9,56 @@ import 'swiper/css/navigation';
 import 'swiper/css/effect-coverflow';
 
 const CarouselContainer = styled.div`
-  max-width: 100%; /* Ocupa a largura total da seção para melhor efeito */
-  padding: 2rem 0;
+  max-width: 100%;
+  padding: 0;
 
   .swiper {
     width: 100%;
     padding-top: 20px;
-    padding-bottom: 50px;
+    padding-bottom: 30px;
   }
 
   .swiper-slide {
     background-position: center;
     background-size: cover;
-    width: 320px; /* Largura do card central */
-    
-    /* Efeito de transição para os slides não ativos */
+    width: 320px; /* Largura padrão para desktop */
     transition: transform 0.4s ease-in-out; 
   }
   
   .swiper-slide-prev,
   .swiper-slide-next {
-    opacity: 0.7; /* Deixa os slides laterais um pouco mais transparentes */
+    opacity: 0.7;
   }
 
-  /* Estilizando as setas de navegação do Swiper */
   .swiper-button-next,
   .swiper-button-prev {
     color: ${({ theme }) => theme.colors.primaryBlue};
-    top: 45%; /* Ajusta a altura das setas */
+    top: 45%;
     
     &:after {
-        font-size: 2rem; /* Tamanho do ícone da seta */
+        font-size: 2rem;
         font-weight: bold;
     }
   }
+
+  /* --- INÍCIO DA ALTERAÇÃO --- */
+  @media ${({ theme }) => theme.breakpoints.tablet} {
+    .swiper-slide {
+      width: 280px; /* Largura intermediária para tablet */
+    }
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    .swiper-slide {
+      width: 240px; /* Largura menor para celular */
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+      display: none;
+    }
+  }
+  /* --- FIM DA ALTERAÇÃO --- */
 `;
 
 const Carousel = ({ products }) => {
@@ -60,7 +74,7 @@ const Carousel = ({ products }) => {
         centeredSlides={true}
         slidesPerView={'auto'}
         loop={true}
-        slideToClickedSlide={true} // <-- ADICIONADO AQUI
+        slideToClickedSlide={true}
         coverflowEffect={{
           rotate: 30,
           stretch: 0,

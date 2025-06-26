@@ -75,9 +75,20 @@ const DeleteButton = styled(AdminButton)`
 
 const ImageWrapper = styled.div`
   width: 100%;
-  height: 200px;
+  height: 200px; /* Altura padrão para desktop */
   position: relative;
   padding: 0.5rem;
+  transition: height 0.3s ease;
+
+  /* --- INÍCIO DA ALTERAÇÃO --- */
+  @media ${({ theme }) => theme.breakpoints.tablet} {
+    height: 180px; /* Altura intermediária para tablet */
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    height: 160px; /* Altura menor para celular */
+  }
+  /* --- FIM DA ALTERAÇÃO --- */
 `;
 
 const CardContent = styled.div`
@@ -91,9 +102,15 @@ const CardContent = styled.div`
 const ProductTitle = styled.h3`
   font-size: 1.1rem;
   margin-bottom: 0.5rem; 
-  height: 44px;
+  height: 44px; /* Altura padrão para 2 linhas de texto */
   overflow: hidden;
   color: ${({ theme }) => theme.colors.darkGray};
+  transition: height 0.3s ease;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 1rem; /* Fonte um pouco menor no celular */
+    height: 40px; /* Altura ajustada para o novo tamanho da fonte */
+  }
 `;
 
 const LoginOverlay = styled.div`
@@ -245,10 +262,8 @@ const ProductCard = ({ product }) => {
             </Price>
           </PriceWrapper>
 
-          {/* Botão para usuários logados */}
           {user && (
             <ActionWrapper>
-              {/* O botão agora não tem mais um onClick próprio, ele seguirá o link do container pai */}
               <Button style={{ width: '100%' }}>
                 Ver Detalhes
               </Button>

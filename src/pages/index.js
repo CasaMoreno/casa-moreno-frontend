@@ -40,19 +40,28 @@ const Section = styled.section`
   padding: 2.5rem 2rem;
   background-color: ${({ theme, $isWhite }) => $isWhite ? 'white' : theme.colors.lightGray};
 
+  /* --- ALTERAÇÃO AQUI --- */
+  /* Adicionando uma classe para a seção de ofertas */
+  &.offers-section {
+    padding-top: 2.5rem;
+    padding-bottom: 0.5rem; /* Espaço vertical reduzido */
+  }
+
   @media ${({ theme }) => theme.breakpoints.mobile} {
     padding: 2rem 1rem;
+    &.offers-section {
+      padding-bottom: 0;
+    }
   }
 `;
 
-// --- INÍCIO DAS ALTERAÇÕES ---
 const TitleWrapper = styled.div`
   max-width: 1200px;
-  margin: 0 auto; /* Centraliza o container do título */
+  margin: 0 auto;
 `;
 
 const SectionTitle = styled.h2`
-  text-align: left; /* Alinha o texto à esquerda DENTRO do container */
+  text-align: left;
   font-size: 2.5rem;
   color: ${({ theme }) => theme.colors.darkGray};
   margin-bottom: 2rem; 
@@ -79,7 +88,6 @@ const SectionTitle = styled.h2`
     }
   }
 `;
-// --- FIM DAS ALTERAÇÕES ---
 
 const FeaturesGrid = styled.div`
     display: grid;
@@ -87,7 +95,7 @@ const FeaturesGrid = styled.div`
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
-    text-align: center; /* Garante que o conteúdo dos cards seja centralizado */
+    text-align: center;
 `;
 
 const FeatureCard = styled.div`
@@ -111,8 +119,8 @@ const CategoryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px; /* Garante que a grade não fique excessivamente larga */
-  margin: 0 auto; /* Centraliza a grade */
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const CategoryCard = styled.div`
@@ -142,7 +150,6 @@ const CategoryCard = styled.div`
 
 const HomePage = ({ promotionalProducts, categories }) => {
   return (
-    // CORREÇÃO: Passando os produtos para o letreiro novamente
     <Layout marqueeProducts={promotionalProducts}>
       <Head>
         <title>Casa Moreno - Tecnologia e Inovação para seu Lar</title>
@@ -151,12 +158,11 @@ const HomePage = ({ promotionalProducts, categories }) => {
 
       <HeroSection />
 
-      <Section>
-        {/* O título agora tem seu próprio container para centralização */}
+      {/* --- ALTERAÇÃO AQUI --- */}
+      <Section className="offers-section">
         <TitleWrapper>
           <SectionTitle>Ofertas em Destaque</SectionTitle>
         </TitleWrapper>
-        {/* O carrossel fica fora do container do título para manter seu layout original */}
         <Carousel products={promotionalProducts} />
       </Section>
 
