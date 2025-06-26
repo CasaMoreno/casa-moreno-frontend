@@ -114,9 +114,9 @@ const LoginOverlay = styled.div`
   cursor: pointer;
   padding: 5px;
   z-index: 5;
-  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: opacity 0.3s ease;
-  pointer-events: ${({ isVisible }) => (isVisible ? 'auto' : 'none')};
+  pointer-events: ${({ $isVisible }) => ($isVisible ? 'auto' : 'none')};
 `;
 
 const PriceWrapper = styled.div`
@@ -131,7 +131,7 @@ const Price = styled.p`
   transition: filter 0.3s ease;
   margin: 0;
 
-  ${({ isBlurred }) => isBlurred && `
+  ${({ $isBlurred }) => $isBlurred && `
     filter: blur(5px);
     -webkit-filter: blur(5px);
   `}
@@ -161,7 +161,7 @@ const OverlayLink = styled.span`
 
 const ConditionBadge = styled.span`
   display: inline-block;
-  background-color: ${({ condition }) => (condition === 'Novo' ? '#198754' : '#6c757d')};
+  background-color: ${({ $condition }) => ($condition === 'Novo' ? '#198754' : '#6c757d')};
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -226,7 +226,7 @@ const ProductCard = ({ product }) => {
           <div />
         )}
         {productCondition && (
-          <ConditionBadge condition={productCondition}>
+          <ConditionBadge $condition={productCondition}>
             {productCondition}
           </ConditionBadge>
         )}
@@ -240,7 +240,7 @@ const ProductCard = ({ product }) => {
         <CardContent>
           <ProductTitle>{productTitle}</ProductTitle>
           <PriceWrapper>
-            <Price isBlurred={!user}>
+            <Price $isBlurred={!user}>
               R$ {currentPrice?.toFixed(2).replace('.', ',')}
             </Price>
           </PriceWrapper>
@@ -256,7 +256,7 @@ const ProductCard = ({ product }) => {
           )}
         </CardContent>
 
-        <LoginOverlay isVisible={!user}>
+        <LoginOverlay $isVisible={!user}>
           <OverlayText>
             <OverlayLink>Faça login</OverlayLink>
             ou

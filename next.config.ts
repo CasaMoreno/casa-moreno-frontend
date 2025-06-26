@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ADICIONE ESTA LINHA:
   output: 'standalone',
 
+  // Adicionando a configuração do compilador de volta
   compiler: {
     styledComponents: true,
   },
+
   images: {
     remotePatterns: [
       {

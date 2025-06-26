@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
-import { useAuth } from '@/hooks/useAuth'; // 1. Importar useAuth
-import ChatWidget from '../common/ChatWidget'; // 2. Importar o ChatWidget
+import { useAuth } from '@/hooks/useAuth';
+import ChatWidget from '../common/ChatWidget';
+import Marquee from '../common/Marquee';
 
 const PageContainer = styled.div`
   display: flex;
@@ -14,14 +15,16 @@ const ContentWrap = styled.main`
   flex: 1;
 `;
 
-const Layout = ({ children }) => {
-  const { user } = useAuth(); // 3. Obter o status do usuário
+// O layout agora aceita a propriedade "marqueeProducts"
+const Layout = ({ children, marqueeProducts }) => {
+  const { user } = useAuth();
 
   return (
     <PageContainer>
       <Navbar />
+      {/* O letreiro só será exibido se receber os produtos */}
+      {marqueeProducts && <Marquee products={marqueeProducts} />}
       <ContentWrap>{children}</ContentWrap>
-      {/* 4. Renderizar o ChatWidget apenas se houver um usuário logado */}
       {user && <ChatWidget />}
       <Footer />
     </PageContainer>

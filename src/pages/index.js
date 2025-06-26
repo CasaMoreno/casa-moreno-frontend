@@ -1,11 +1,9 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import Head from 'next/head';
-import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 import apiClient from '@/api/axios';
 import Carousel from '@/components/common/Carousel';
-import Button from '@/components/common/Button';
 
 // --- Ícones para a Seção de Diferenciais ---
 const TruckIcon = () => (
@@ -29,32 +27,17 @@ const TagIcon = () => (
 );
 
 const HeroSection = styled.section`
-  position: relative; 
+  background-image: url('/casa-moreno-banner2.jpeg');
+  background-size: cover;
+  background-position: center center;
+  position: relative;
   width: 100%;
-  min-height: 60vh;
-  overflow: hidden; 
-
-  @media (max-width: 1024px) {
-    min-height: 50vh;
-  }
-
-  @media (max-width: 768px) {
-    min-height: 45vh;
-  }
-`;
-
-const HeroImage = styled(Image)`
-  object-fit: cover; 
-  object-position: center center; 
-
-  @media (max-width: 768px) {
-    object-position: right center; 
-  }
+  height: 0;
+  padding-top: 40%; 
 `;
 
 const Section = styled.section`
   padding: 2.5rem 2rem;
-  text-align: center;
   background-color: ${({ theme, $isWhite }) => $isWhite ? 'white' : theme.colors.lightGray};
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
@@ -62,11 +45,41 @@ const Section = styled.section`
   }
 `;
 
-const SectionTitle = styled.h2`
-  font-size: 2.8rem;
-  margin-bottom: 2.5rem; 
-  color: ${({ theme }) => theme.colors.darkGray};
+// --- INÍCIO DAS ALTERAÇÕES ---
+const TitleWrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto; /* Centraliza o container do título */
 `;
+
+const SectionTitle = styled.h2`
+  text-align: left; /* Alinha o texto à esquerda DENTRO do container */
+  font-size: 2.5rem;
+  color: ${({ theme }) => theme.colors.darkGray};
+  margin-bottom: 2rem; 
+  position: relative;
+  padding-bottom: 0.75rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background-color: ${({ theme }) => theme.colors.primaryBlue};
+    border-radius: 2px;
+  }
+  
+  @media (max-width: 767px) {
+    font-size: 1.8rem;
+    padding-bottom: 0.5rem;
+    &::after {
+        width: 60px;
+        height: 3px;
+    }
+  }
+`;
+// --- FIM DAS ALTERAÇÕES ---
 
 const FeaturesGrid = styled.div`
     display: grid;
@@ -74,6 +87,7 @@ const FeaturesGrid = styled.div`
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    text-align: center; /* Garante que o conteúdo dos cards seja centralizado */
 `;
 
 const FeatureCard = styled.div`
@@ -97,8 +111,8 @@ const CategoryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1200px; /* Garante que a grade não fique excessivamente larga */
+  margin: 0 auto; /* Centraliza a grade */
 `;
 
 const CategoryCard = styled.div`
@@ -112,6 +126,7 @@ const CategoryCard = styled.div`
   color: ${({ theme }) => theme.colors.primaryBlue};
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   cursor: pointer;
+  text-align: center;
 
   &:hover {
     transform: translateY(-8px);
@@ -127,27 +142,28 @@ const CategoryCard = styled.div`
 
 const HomePage = ({ promotionalProducts, categories }) => {
   return (
-    <Layout>
+    // CORREÇÃO: Passando os produtos para o letreiro novamente
+    <Layout marqueeProducts={promotionalProducts}>
       <Head>
         <title>Casa Moreno - Tecnologia e Inovação para seu Lar</title>
         <meta name="description" content="Explore as melhores ofertas em smartphones, notebooks e eletrônicos. A Casa Moreno conecta você às melhores oportunidades." />
       </Head>
 
-      <HeroSection>
-        <HeroImage
-          src="/casa-moreno-banner2.jpeg"
-          alt="Banner da Casa Moreno com eletrônicos"
-          layout="fill"
-          priority
-        />
-      </HeroSection>
+      <HeroSection />
 
       <Section>
+        {/* O título agora tem seu próprio container para centralização */}
+        <TitleWrapper>
+          <SectionTitle>Ofertas em Destaque</SectionTitle>
+        </TitleWrapper>
+        {/* O carrossel fica fora do container do título para manter seu layout original */}
         <Carousel products={promotionalProducts} />
       </Section>
 
       <Section $isWhite>
-        <SectionTitle>Navegue por Categorias</SectionTitle>
+        <TitleWrapper>
+          <SectionTitle>Navegue por Categorias</SectionTitle>
+        </TitleWrapper>
         <CategoryGrid>
           {categories.map(cat => (
             <Link key={cat} href={`/products/${cat.toLowerCase()}`} passHref>
@@ -157,9 +173,7 @@ const HomePage = ({ promotionalProducts, categories }) => {
         </CategoryGrid>
       </Section>
 
-      {/* --- INÍCIO DA ALTERAÇÃO --- */}
       <Section>
-        {/* O <SectionTitle> foi removido daqui */}
         <FeaturesGrid>
           <FeatureCard>
             <ShieldIcon />
@@ -178,7 +192,6 @@ const HomePage = ({ promotionalProducts, categories }) => {
           </FeatureCard>
         </FeaturesGrid>
       </Section>
-      {/* --- FIM DA ALTERAÇÃO --- */}
     </Layout>
   );
 };

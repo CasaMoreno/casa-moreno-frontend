@@ -68,7 +68,7 @@ const ProductPageContainer = styled.div`
 
 const AdminActionWrapper = styled.div`
    display: flex;
-   gap: 8px; /* Espaçamento entre os botões ligeiramente reduzido */
+   gap: 8px; 
    flex-wrap: wrap; 
    justify-content: flex-end;
 
@@ -85,9 +85,8 @@ const AdminActionWrapper = styled.div`
    }
 `;
 
-// --- INÍCIO DA ALTERAÇÃO (Botões Menores) ---
 const AdminEditButton = styled(Button)`
-   padding: 10px 15px; /* Padding horizontal um pouco menor */
+   padding: 10px 15px;
    font-size: 0.9rem;
    background-color: ${({ theme }) => theme.colors.darkGray};
    transition: background-color 0.2s ease-in-out;
@@ -99,7 +98,6 @@ const AdminEditButton = styled(Button)`
      background-color: #555;
    }
 
-   /* Em telas pequenas, os botões ficam ainda mais compactos */
    @media (max-width: 900px) {
     padding: 6px 10px;
     font-size: 0.75rem;
@@ -115,19 +113,17 @@ const AiButton = styled(AdminEditButton)`
 `;
 
 const AdminDeleteButton = styled(CancelButton)`
-   padding: 10px 15px; /* Padding horizontal um pouco menor */
+   padding: 10px 15px;
    font-size: 0.9rem;
    display: inline-flex;
    align-items: center;
    justify-content: center;
 
-   /* Em telas pequenas, os botões ficam ainda mais compactos */
    @media (max-width: 900px) {
     padding: 6px 10px;
     font-size: 0.75rem;
    }
 `;
-// --- FIM DA ALTERAÇÃO (Botões Menores) ---
 
 const Breadcrumbs = styled.div`
    margin-bottom: 2rem;
@@ -281,10 +277,10 @@ const StyledThumbnail = styled.div`
    border-radius: 5px;
    overflow: hidden;
    cursor: pointer;
-   border: 2px solid ${({ isActive }) => (isActive ? '#2A4A87' : '#eee')};
+   border: 2px solid ${({ $isActive }) => ($isActive ? '#2A4A87' : '#eee')};
    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     
-   ${({ isDragging }) => isDragging && css`
+   ${({ $isDragging }) => $isDragging && css`
      opacity: 0.5;
      border-color: ${({ theme }) => theme.colors.primaryPurple};
      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primaryPurple};
@@ -412,9 +408,9 @@ const SortableThumbnail = ({ id, url, isActive, onClick, user, isMainImage, hand
       style={style}
       {...attributes}
       {...listeners}
-      isActive={isActive}
+      $isActive={isActive}
       onClick={onClick}
-      isDragging={isDragging}
+      $isDragging={isDragging}
     >
       <Image src={url} alt={`Thumbnail ${id}`} fill style={{ objectFit: 'contain' }} />
       {user?.scope === 'ADMIN' && (
@@ -640,12 +636,10 @@ const ProductDetailPage = ({ product, error }) => {
                 <SparkleIcon />
                 Gerar Descrição
               </AiButton>
-              <Link href={`/admin/edit/${currentProduct.productId}`} passHref>
-                <AdminEditButton>
-                  <EditIcon />
-                  Editar
-                </AdminEditButton>
-              </Link>
+              <AdminEditButton as={Link} href={`/admin/edit/${currentProduct.productId}`}>
+                <EditIcon />
+                Editar
+              </AdminEditButton>
               <AdminDeleteButton onClick={handleDeleteProduct}>
                 <TrashIcon />
                 Deletar
@@ -700,7 +694,7 @@ const ProductDetailPage = ({ product, error }) => {
                   {currentProduct.galleryImageUrls?.map((url, index) => (
                     <StyledThumbnail
                       key={url}
-                      isActive={index === selectedImageIndex}
+                      $isActive={index === selectedImageIndex}
                       onClick={() => setSelectedImageIndex(index)}
                     >
                       <Image src={url} alt={`Thumbnail ${index + 1}`} fill style={{ objectFit: 'contain' }} />
@@ -738,9 +732,9 @@ const ProductDetailPage = ({ product, error }) => {
 
               <p>Estoque: <strong>{currentProduct.stockStatus || 'Consulte na loja'}</strong></p>
 
-              <a href={currentProduct.affiliateLink} target="_blank" rel="noopener noreferrer">
-                <AffiliateButton>Ver Oferta na Loja do Parceiro</AffiliateButton>
-              </a>
+              <AffiliateButton as="a" href={currentProduct.affiliateLink} target="_blank" rel="noopener noreferrer">
+                Ver Oferta na Loja do Parceiro
+              </AffiliateButton>
 
               <DisclaimerText>
                 Atenção: Preços e informações de estoque podem sofrer pequenas alterações no site do parceiro devido ao tempo de sincronização. Sempre confirme os detalhes na página de destino.

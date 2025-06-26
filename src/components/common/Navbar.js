@@ -42,7 +42,7 @@ const LogoText = styled.span`
   color: white;
 `;
 
-const LogoTextLink = styled.a`
+const LogoTextLink = styled(Link)`
   padding: 8px 16px;
   cursor: pointer;
 `;
@@ -56,15 +56,15 @@ const DesktopLinksContainer = styled.div`
   @media ${({ theme }) => theme.breakpoints.tablet} { display: none; }
 `;
 
-const StyledLink = styled.a`
+const StyledLink = styled(Link)`
   position: relative;
   padding: 8px 4px;
   font-weight: bold;
   cursor: pointer;
   text-decoration: none;
   transition: color 0.3s ease-out;
-  color: ${({ isActive }) => (isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
-  font-size: ${({ isActive }) => (isActive ? '1.05rem' : '1rem')};
+  color: ${({ $isActive }) => ($isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
+  font-size: ${({ $isActive }) => ($isActive ? '1.05rem' : '1rem')};
 
   &::after {
     content: '';
@@ -78,7 +78,7 @@ const StyledLink = styled.a`
     transition: transform 0.3s ease-out;
   }
 
-  ${({ isActive }) => !isActive && css`
+  ${({ $isActive }) => !$isActive && css`
     &:hover::after { transform: scaleX(1); }
   `}
 `;
@@ -100,10 +100,10 @@ const DropdownMenu = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius};
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   padding: 0.5rem 0; z-index: 1001; width: 180px;
-  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+  display: ${({ $isOpen }) => ($isOpen ? 'block' : 'none')};
 `;
 
-const DropdownItem = styled.a`
+const DropdownItem = styled(Link)`
   display: flex; 
   align-items: center; 
   gap: 0.5rem; 
@@ -111,6 +111,25 @@ const DropdownItem = styled.a`
   color: ${({ theme }) => theme.colors.darkGray};
   cursor: pointer; font-weight: normal;
   &:hover { background-color: ${({ theme }) => theme.colors.lightGray}; }
+`;
+
+const DropdownButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: ${({ theme }) => theme.colors.darkGray};
+  cursor: pointer;
+  font-weight: normal;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem; /* Herdar o tamanho da fonte */
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGray};
+  }
 `;
 
 const HamburgerButton = styled.button`
@@ -126,7 +145,7 @@ const HamburgerButton = styled.button`
     transition: all 0.3s ease-in-out;
     position: relative;
     
-    ${({ isOpen }) => isOpen && css`
+    ${({ $isOpen }) => $isOpen && css`
       &:nth-child(1) { transform: translateY(8px) rotate(45deg); }
       &:nth-child(2) { opacity: 0; }
       &:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
@@ -137,7 +156,7 @@ const HamburgerButton = styled.button`
 const MobileMenu = styled.div`
   display: flex; flex-direction: column;
   position: fixed; top: 0;
-  right: ${({ isOpen }) => (isOpen ? '0' : '-100%')};
+  right: ${({ $isOpen }) => ($isOpen ? '0' : '-100%')};
   width: 80%; max-width: 320px; height: 100vh;
   background: linear-gradient(to bottom, #2A4A87, #4c3a8a);
   padding: 1.5rem;
@@ -148,7 +167,7 @@ const MobileMenu = styled.div`
   overflow-y: auto;
 
   & > * {
-    opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
+    opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
     transition: opacity 0.3s ease-in-out 0.2s;
   }
 `;
@@ -158,16 +177,15 @@ const Backdrop = styled.div`
   width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1099;
-  opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
-  visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
+  opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+  visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
   transition: opacity 0.3s ease, visibility 0.3s ease;
 `;
 
-// ATUALIZAÇÃO: Removido o padding inferior para eliminar espaço extra.
 const MenuHeader = styled.div`
   width: 100%;
   text-align: center;
-  padding: 1rem 0 0.5rem; // Reduzido o padding inferior
+  padding: 1rem 0 0.5rem;
   flex-shrink: 0;
 `;
 
@@ -177,11 +195,10 @@ const UserGreeting = styled.p`
   margin-top: 0.5rem;
 `;
 
-// ATUALIZAÇÃO: Reduzido o espaçamento para aproximar do header.
 const MenuSection = styled.div`
   width: 100%;
-  margin-top: 0.75rem;      /* Espaço acima da linha separadora */
-  padding-top: 0.75rem;     /* Espaço abaixo da linha separadora */
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 
   h4 {
@@ -195,25 +212,21 @@ const MenuSection = styled.div`
   }
 `;
 
-const MenuLink = styled.a`
+const MenuLink = styled(Link)`
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.8rem 1rem;
   width: 100%;
-  
   font-family: inherit;
   font-size: 1.1rem;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.9);
-  
   text-align: left;
   text-decoration: none;
-  
   background: transparent;
   border: none;
   border-radius: 8px;
-  
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 
@@ -221,6 +234,30 @@ const MenuLink = styled.a`
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
   }
+`;
+
+const MenuButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: left;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover, &.active {
+        background-color: rgba(0, 0, 0, 0.2);
+        color: white;
+    }
 `;
 
 
@@ -273,17 +310,19 @@ const Navbar = () => {
 
   return (
     <>
-      <Backdrop isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(false)} />
+      <Backdrop $isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(false)} />
       <Nav>
-        <Link href="/" passHref legacyBehavior><LogoTextLink><LogoText>Casa Moreno</LogoText></LogoTextLink></Link>
+        <LogoTextLink href="/"><LogoText>Casa Moreno</LogoText></LogoTextLink>
 
         <DesktopLinksContainer>
           {categories.map(category => (
-            <Link key={category} href={`/products/${category.toLowerCase()}`} passHref legacyBehavior>
-              <StyledLink isActive={decodeURIComponent(router.asPath).startsWith(`/products/${category.toLowerCase()}`)}>
-                {category}
-              </StyledLink>
-            </Link>
+            <StyledLink
+              key={category}
+              href={`/products/${category.toLowerCase()}`}
+              $isActive={decodeURIComponent(router.asPath).startsWith(`/products/${category.toLowerCase()}`)}
+            >
+              {category}
+            </StyledLink>
           ))}
         </DesktopLinksContainer>
 
@@ -291,32 +330,30 @@ const Navbar = () => {
           {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
               <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {firstName} ▼</UserMenuButton>
-              <DropdownMenu isOpen={isUserMenuOpen}>
-                <Link href={getDashboardPath()} passHref legacyBehavior>
-                  <DropdownItem onClick={() => setIsUserMenuOpen(false)}>
-                    <PanelIcon />
-                    <span>Meu Painel</span>
-                  </DropdownItem>
-                </Link>
-                <DropdownItem onClick={handleLogout}>
+              <DropdownMenu $isOpen={isUserMenuOpen}>
+                <DropdownItem href={getDashboardPath()} onClick={() => setIsUserMenuOpen(false)}>
+                  <PanelIcon />
+                  <span>Meu Painel</span>
+                </DropdownItem>
+                <DropdownButton onClick={handleLogout}>
                   <LogoutIcon />
                   <span>Sair</span>
-                </DropdownItem>
+                </DropdownButton>
               </DropdownMenu>
             </UserMenuContainer>
           ) : (
             <>
-              <Link href="/auth/login" passHref legacyBehavior><StyledLink isActive={router.pathname === '/auth/login'}>Login</StyledLink></Link>
-              <Link href="/auth/register" passHref legacyBehavior><StyledLink isActive={router.pathname === '/auth/register'}>Cadastre-se</StyledLink></Link>
+              <StyledLink href="/auth/login" $isActive={router.pathname === '/auth/login'}>Login</StyledLink>
+              <StyledLink href="/auth/register" $isActive={router.pathname === '/auth/register'}>Cadastre-se</StyledLink>
             </>
           )}
         </DesktopLinksContainer>
 
-        <HamburgerButton isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+        <HamburgerButton $isOpen={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           <span /><span /><span />
         </HamburgerButton>
 
-        <MobileMenu isOpen={isMobileMenuOpen}>
+        <MobileMenu $isOpen={isMobileMenuOpen}>
           <MenuHeader>
             <LogoText>Casa Moreno</LogoText>
             {user && userData && <UserGreeting>Olá, {firstName}</UserGreeting>}
@@ -327,11 +364,9 @@ const Navbar = () => {
             {categories.map(category => {
               const path = `/products/${category.toLowerCase()}`;
               return (
-                <Link key={`mobile-${category}`} href={path} passHref legacyBehavior>
-                  <MenuLink className={decodeURIComponent(router.asPath).startsWith(path) ? 'active' : ''}>
-                    {category}
-                  </MenuLink>
-                </Link>
+                <MenuLink key={`mobile-${category}`} href={path} className={decodeURIComponent(router.asPath).startsWith(path) ? 'active' : ''}>
+                  {category}
+                </MenuLink>
               );
             })}
           </MenuSection>
@@ -340,21 +375,19 @@ const Navbar = () => {
             <h4>Conta</h4>
             {user ? (
               <>
-                <Link href={getDashboardPath()} passHref legacyBehavior>
-                  <MenuLink className={router.asPath === getDashboardPath() ? 'active' : ''}>
-                    <PanelIcon />
-                    <span>Meu Painel</span>
-                  </MenuLink>
-                </Link>
-                <MenuLink as="button" onClick={handleLogout}>
+                <MenuLink href={getDashboardPath()} className={router.asPath === getDashboardPath() ? 'active' : ''}>
+                  <PanelIcon />
+                  <span>Meu Painel</span>
+                </MenuLink>
+                <MenuButton onClick={handleLogout}>
                   <LogoutIcon />
                   <span>Sair</span>
-                </MenuLink>
+                </MenuButton>
               </>
             ) : (
               <>
-                <Link href="/auth/login" passHref legacyBehavior><MenuLink className={router.pathname === '/auth/login' ? 'active' : ''}>Login</MenuLink></Link>
-                <Link href="/auth/register" passHref legacyBehavior><MenuLink className={router.pathname === '/auth/register' ? 'active' : ''}>Cadastre-se</MenuLink></Link>
+                <MenuLink href="/auth/login" className={router.pathname === '/auth/login' ? 'active' : ''}>Login</MenuLink>
+                <MenuLink href="/auth/register" className={router.pathname === '/auth/register' ? 'active' : ''}>Cadastre-se</MenuLink>
               </>
             )}
           </MenuSection>
