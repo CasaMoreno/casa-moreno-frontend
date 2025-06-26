@@ -2,11 +2,66 @@ import { useState, useRef, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import apiClient from '@/api/axios';
 
-// Animações
+// Animação para o balão de diálogo aparecer
+const popIn = keyframes`
+  0% { transform: scale(0.8); opacity: 0; }
+  80% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+`;
+
+const SpeechBubble = styled.div`
+  position: absolute;
+  bottom: 85px; 
+  right: 0;
+  width: 240px; 
+  background: ${({ theme }) => theme.colors.gradient};
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  animation: ${popIn} 0.5s ease-out forwards;
+  transform-origin: bottom right;
+  cursor: default;
+  z-index: -1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #5E3A8A;
+  }
+`;
+
+const BubbleCloseButton = styled.button`
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }`;
 const fadeOut = keyframes`from { opacity: 1; } to { opacity: 0; }`;
 
-// Estilos
 const WidgetContainer = styled.div`
   position: fixed;
   bottom: 20px;
@@ -23,21 +78,16 @@ const ChatWindow = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: ${({ isClosing }) => isClosing ? css`${fadeOut} 0.3s forwards` : css`${fadeIn} 0.3s ease-out`};
+  animation: ${({ $isClosing }) => $isClosing ? css`${fadeOut} 0.3s forwards` : css`${fadeIn} 0.3s ease-out`};
 
-  /* --- INÍCIO DA ALTERAÇÃO --- */
-  /* Ajustes para telas de celular e tablets */
   @media ${({ theme }) => theme.breakpoints.mobile} {
-    width: calc(100vw - 40px); /* Largura um pouco menor para dar mais margem */
-    height: 480px; /* Altura fixa e menor para não ocupar a tela toda */
-    /* As propriedades de posicionamento são herdadas do WidgetContainer */
+    width: calc(100vw - 40px);
+    height: 480px;
   }
 
   @media ${({ theme }) => theme.breakpoints.tablet} {
-    /* Mantém um tamanho bom para tablets também */
     height: 500px;
   }
-  /* --- FIM DA ALTERAÇÃO --- */
 `;
 
 const Header = styled.div`
@@ -116,15 +166,37 @@ const ChatFab = styled.button`
   display: flex; justify-content: center; align-items: center;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 `;
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isBubbleVisible, setIsBubbleVisible] = useState(false);
   const [messages, setMessages] = useState([{ sender: 'ai', text: 'Olá! Sou o assistente da Casa Moreno. Como posso ajudar?' }]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messageAreaRef = useRef(null);
+
+  // --- INÍCIO DA ALTERAÇÃO ---
+  useEffect(() => {
+    // Pega o timestamp de quando o balão foi fechado
+    const dismissedTimestamp = localStorage.getItem('casaMorenoBubbleDismissed');
+
+    if (dismissedTimestamp) {
+      const oneDay = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+      const now = new Date().getTime();
+
+      // Se já se passaram mais de 24 horas, mostra o balão de novo
+      if (now - dismissedTimestamp > oneDay) {
+        setIsBubbleVisible(true);
+      }
+    } else {
+      // Se nunca foi fechado, mostra o balão
+      setIsBubbleVisible(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (messageAreaRef.current) {
@@ -134,6 +206,7 @@ const ChatWidget = () => {
 
   const openChat = () => {
     setIsOpen(true);
+    setIsBubbleVisible(false);
   };
 
   const closeChat = () => {
@@ -141,9 +214,8 @@ const ChatWidget = () => {
     setTimeout(() => {
       setIsOpen(false);
       setIsClosing(false);
-    }, 300); // Mesmo tempo da animação de fadeOut
+    }, 300);
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -166,15 +238,21 @@ const ChatWidget = () => {
     }
   };
 
+  const handleCloseBubble = (e) => {
+    e.stopPropagation();
+    setIsBubbleVisible(false);
+    // Salva o timestamp atual no localStorage
+    localStorage.setItem('casaMorenoBubbleDismissed', new Date().getTime());
+  };
+  // --- FIM DA ALTERAÇÃO ---
+
   return (
     <WidgetContainer>
       {isOpen ? (
-        <ChatWindow isClosing={isClosing}>
+        <ChatWindow $isClosing={isClosing}>
           <Header>
             Assistente Virtual
-            <CloseButton onClick={closeChat}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
-            </CloseButton>
+            <CloseButton onClick={closeChat}>&times;</CloseButton>
           </Header>
           <MessageArea ref={messageAreaRef}>
             {messages.map((msg, index) => (
@@ -198,9 +276,17 @@ const ChatWidget = () => {
           </InputArea>
         </ChatWindow>
       ) : (
-        <ChatFab onClick={openChat}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
-        </ChatFab>
+        <>
+          {isBubbleVisible && (
+            <SpeechBubble>
+              <BubbleCloseButton onClick={handleCloseBubble}>&times;</BubbleCloseButton>
+              Olá! Eu sou a assistente virtual da Casa Moreno, baseada em IA. Precisa de ajuda?
+            </SpeechBubble>
+          )}
+          <ChatFab onClick={openChat}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+          </ChatFab>
+        </>
       )}
     </WidgetContainer>
   );
