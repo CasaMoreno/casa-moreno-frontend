@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect, useRef } from 'react';
 import apiClient from '@/api/axios';
 
-// --- Ícones SVG para o Menu ---
+// --- Ícones SVG ---
 const PanelIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
@@ -14,6 +14,12 @@ const PanelIcon = () => (
 const LogoutIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+// NOVO ÍCONE DE LOGIN
+const LoginIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
   </svg>
 );
 
@@ -45,6 +51,7 @@ const LogoText = styled.span`
 const LogoTextLink = styled(Link)`
   padding: 8px 16px;
   cursor: pointer;
+  text-decoration: none;
 `;
 
 const DesktopLinksContainer = styled.div`
@@ -65,6 +72,9 @@ const StyledLink = styled(Link)`
   transition: color 0.3s ease-out;
   color: ${({ $isActive }) => ($isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
   font-size: ${({ $isActive }) => ($isActive ? '1.05rem' : '1rem')};
+  display: inline-flex; /* Para alinhar ícone e texto */
+  align-items: center;
+  gap: 0.5rem;
 
   &::after {
     content: '';
@@ -110,6 +120,7 @@ const DropdownItem = styled(Link)`
   padding: 0.75rem 1rem;
   color: ${({ theme }) => theme.colors.darkGray};
   cursor: pointer; font-weight: normal;
+  text-decoration: none;
   &:hover { background-color: ${({ theme }) => theme.colors.lightGray}; }
 `;
 
@@ -125,7 +136,8 @@ const DropdownButton = styled.button`
   border: none;
   width: 100%;
   text-align: left;
-  font-size: 1rem; /* Herdar o tamanho da fonte */
+  font-family: inherit;
+  font-size: 1rem;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.lightGray};
@@ -218,15 +230,19 @@ const MenuLink = styled(Link)`
   gap: 1rem;
   padding: 0.8rem 1rem;
   width: 100%;
+  
   font-family: inherit;
   font-size: 1.1rem;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.9);
+  
   text-align: left;
   text-decoration: none;
+  
   background: transparent;
   border: none;
   border-radius: 8px;
+  
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 
@@ -343,8 +359,10 @@ const Navbar = () => {
             </UserMenuContainer>
           ) : (
             <>
-              <StyledLink href="/auth/login" $isActive={router.pathname === '/auth/login'}>Login</StyledLink>
-              <StyledLink href="/auth/register" $isActive={router.pathname === '/auth/register'}>Cadastre-se</StyledLink>
+              <StyledLink href="/auth/login" $isActive={router.pathname === '/auth/login'}>
+                <LoginIcon />
+                Login
+              </StyledLink>
             </>
           )}
         </DesktopLinksContainer>
@@ -386,8 +404,10 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <MenuLink href="/auth/login" className={router.pathname === '/auth/login' ? 'active' : ''}>Login</MenuLink>
-                <MenuLink href="/auth/register" className={router.pathname === '/auth/register' ? 'active' : ''}>Cadastre-se</MenuLink>
+                <MenuLink href="/auth/login" className={router.pathname === '/auth/login' ? 'active' : ''}>
+                  <LoginIcon />
+                  Login
+                </MenuLink>
               </>
             )}
           </MenuSection>
