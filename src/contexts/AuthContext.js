@@ -18,14 +18,11 @@ export const AuthProvider = ({ children }) => {
         if (decodedToken.exp * 1000 < Date.now()) {
           logout();
         } else {
-          // --- INÍCIO DA ALTERAÇÃO ---
-          // Corrigido para ler "userId" (sem espaço), conforme o token gerado pelo backend.
           setUser({
             username: decodedToken.sub,
             userId: decodedToken.userId,
             scope: decodedToken.scope,
           });
-          // --- FIM DA ALTERAÇÃO ---
         }
       } catch (error) {
         console.error("Invalid token");
@@ -47,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser({
         username: decodedToken.sub,
-        userId: decodedToken.userId, // Corrigido aqui também
+        userId: decodedToken.userId,
         scope: decodedToken.scope,
       });
 
@@ -66,15 +63,20 @@ export const AuthProvider = ({ children }) => {
     router.push('/auth/login');
   };
 
+  // --- INÍCIO DA ALTERAÇÃO ---
   const register = async (userData) => {
     try {
-      await apiClient.post('/users/create', userData);
-      router.push('/auth/login');
+      // Modificado para retornar os dados do usuário criado
+      const response = await apiClient.post('/users/create', userData);
+      return response.data;
     } catch (error) {
       console.error('Registration failed:', error);
-      throw new Error('Erro ao registrar. Tente novamente.');
+      // Extrai a mensagem de erro da resposta da API, se disponível
+      const errorMessage = error.response?.data?.message || 'Erro ao registrar. Verifique os dados e tente novamente.';
+      throw new Error(errorMessage);
     }
   };
+  // --- FIM DA ALTERAÇÃO ---
 
   const handleOauthToken = useCallback((token) => {
     if (typeof token !== 'string') {

@@ -9,6 +9,8 @@ import Button from '@/components/common/Button';
 import UserEditModal from '@/components/admin/UserEditModal';
 import ChangePasswordModal from '@/components/common/ChangePasswordModal';
 import { formatPhoneNumber } from '@/utils/formatters';
+import Avatar from '@/components/common/Avatar'; // Importar Avatar
+import ProfilePictureModal from '@/components/common/ProfilePictureModal'; // Importar Modal
 
 const DashboardContainer = styled.div`
   max-width: 900px;
@@ -39,18 +41,29 @@ const ProfileCard = styled.div`
   }
 `;
 
-const Avatar = styled.div`
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-color: ${({ theme }) => theme.colors.lightGray};
-    color: ${({ theme }) => theme.colors.primaryBlue};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    font-weight: bold;
-    flex-shrink: 0;
+// Container para o Avatar e o botão de upload
+const AvatarContainer = styled.div`
+  position: relative;
+  
+  &:hover button {
+    opacity: 1;
+  }
+`;
+
+const UploadButton = styled(Button)`
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
 `;
 
 const ProfileContent = styled.div`
@@ -98,8 +111,6 @@ const ActionButton = styled(Button)`
     min-width: 150px;
 `;
 
-// REMOVIDO o EditButton que tinha a cor roxa
-
 const DangerButton = styled(ActionButton)`
     background-color: ${({ theme }) => theme.colors.error};
     &:hover {
@@ -107,19 +118,33 @@ const DangerButton = styled(ActionButton)`
     }
 `;
 
+const UploadIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
+  </svg>
+);
+
+
 const UserDashboard = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isPictureModalOpen, setIsPictureModalOpen] = useState(false); // Estado para o modal da foto
   const { showNotification } = useNotification();
 
-  useEffect(() => {
+  const fetchUserData = () => {
     if (authUser) {
       apiClient.get(`/users/username?username=${authUser.username}`)
         .then(response => setUserData(response.data))
         .catch(error => { console.error("Falha ao buscar dados do usuário:", error); });
     }
+  }
+
+  useEffect(() => {
+    fetchUserData();
   }, [authUser]);
 
   const handleUpdateUser = async (data) => {
@@ -131,6 +156,11 @@ const UserDashboard = () => {
     } catch (error) {
       showNotification({ title: 'Erro', message: 'Não foi possível atualizar o perfil.' });
     }
+  };
+
+  const handleUploadSuccess = (newUrl) => {
+    // Atualiza a URL da foto no estado local para refletir a mudança imediatamente
+    setUserData(prev => ({ ...prev, profilePictureUrl: newUrl }));
   };
 
   const formatDate = (dateString) => {
@@ -151,10 +181,24 @@ const UserDashboard = () => {
       )}
       {isChangingPassword && <ChangePasswordModal onClose={() => setIsChangingPassword(false)} />}
 
+      {isPictureModalOpen && (
+        <ProfilePictureModal
+          userId={userData.userId}
+          onClose={() => setIsPictureModalOpen(false)}
+          onUploadSuccess={handleUploadSuccess}
+        />
+      )}
+
       <DashboardContainer>
         <Title>Meu Perfil</Title>
         <ProfileCard>
-          <Avatar>{userData.name?.charAt(0) || '?'}</Avatar>
+          <AvatarContainer>
+            <Avatar user={userData} />
+            <UploadButton onClick={() => setIsPictureModalOpen(true)} title="Alterar foto de perfil">
+              <UploadIcon />
+            </UploadButton>
+          </AvatarContainer>
+
           <ProfileContent>
             <ProfileInfo>
               <strong>Nome:</strong><p>{userData.name || 'Não informado'}</p>
@@ -167,7 +211,6 @@ const UserDashboard = () => {
           </ProfileContent>
 
           <ActionsContainer>
-            {/* CORREÇÃO: Voltando a usar o ActionButton padrão (azul) */}
             <ActionButton onClick={() => setIsEditing(true)}>Editar Perfil</ActionButton>
             <DangerButton onClick={() => setIsChangingPassword(true)}>Alterar Senha</DangerButton>
           </ActionsContainer>

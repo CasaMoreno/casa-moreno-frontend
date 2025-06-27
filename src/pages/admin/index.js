@@ -8,8 +8,11 @@ import apiClient from '@/api/axios';
 import Button from '@/components/common/Button';
 import UserEditModal from '@/components/admin/UserEditModal';
 import Link from 'next/link';
-import ChangePasswordModal from '@/components/common/ChangePasswordModal'; // NOVO
-import { formatPhoneNumber } from '@/utils/formatters'; // NOVO
+import ChangePasswordModal from '@/components/common/ChangePasswordModal';
+import { formatPhoneNumber } from '@/utils/formatters';
+import Avatar from '@/components/common/Avatar'; // Importar Avatar
+import ProfilePictureModal from '@/components/common/ProfilePictureModal'; // Importar Modal
+
 
 const DashboardContainer = styled.div`
   max-width: 900px;
@@ -28,8 +31,6 @@ const Title = styled.h1`
   color: ${({ theme }) => theme.colors.primaryBlue};
 `;
 
-// --- ESTILOS ATUALIZADOS (idênticos ao do dashboard/index.js) ---
-
 const ProfileCard = styled.div`
   background-color: #fff;
   padding: 2rem;
@@ -39,7 +40,7 @@ const ProfileCard = styled.div`
   align-items: center;
   gap: 2.5rem;
   position: relative;
-  margin-bottom: 1.5rem; /* Reduzido para aproximar dos botões de admin */
+  margin-bottom: 1.5rem;
   
   @media ${({ theme }) => theme.breakpoints.mobile} { 
     flex-direction: column; 
@@ -47,18 +48,29 @@ const ProfileCard = styled.div`
   }
 `;
 
-const Avatar = styled.div`
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-color: ${({ theme }) => theme.colors.lightGray};
-    color: ${({ theme }) => theme.colors.primaryBlue};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    font-weight: bold;
-    flex-shrink: 0;
+// Container para o Avatar e o botão de upload
+const AvatarContainer = styled.div`
+  position: relative;
+  
+  &:hover button {
+    opacity: 1;
+  }
+`;
+
+const UploadButton = styled(Button)`
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
 `;
 
 const ProfileContent = styled.div`
@@ -113,8 +125,6 @@ const DangerButton = styled(ActionButton)`
     }
 `;
 
-// --- Fim dos estilos atualizados ---
-
 const AdminButtonsContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -161,12 +171,21 @@ const AdminButtonCard = styled.div`
   }
 `;
 
+const UploadIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
+  </svg>
+);
 
-const UserDashboard = () => {
+
+const AdminDashboard = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false); // NOVO
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isPictureModalOpen, setIsPictureModalOpen] = useState(false);
   const { showNotification } = useNotification();
 
   useEffect(() => {
@@ -186,6 +205,10 @@ const UserDashboard = () => {
     } catch (error) {
       showNotification({ title: 'Erro', message: 'Não foi possível atualizar o perfil.' });
     }
+  };
+
+  const handleUploadSuccess = (newUrl) => {
+    setUserData(prev => ({ ...prev, profilePictureUrl: newUrl }));
   };
 
   const formatDate = (dateString) => {
@@ -208,13 +231,25 @@ const UserDashboard = () => {
           title="Editar Meu Perfil"
         />
       )}
-      {/* NOVO: Modal de troca de senha para o admin */}
       {isChangingPassword && <ChangePasswordModal onClose={() => setIsChangingPassword(false)} />}
+
+      {isPictureModalOpen && (
+        <ProfilePictureModal
+          userId={userData.userId}
+          onClose={() => setIsPictureModalOpen(false)}
+          onUploadSuccess={handleUploadSuccess}
+        />
+      )}
 
       <DashboardContainer>
         <Title>Painel do Administrador</Title>
         <ProfileCard>
-          <Avatar>{userData.name.charAt(0)}</Avatar>
+          <AvatarContainer>
+            <Avatar user={userData} />
+            <UploadButton onClick={() => setIsPictureModalOpen(true)} title="Alterar foto de perfil">
+              <UploadIcon />
+            </UploadButton>
+          </AvatarContainer>
           <ProfileContent>
             <ProfileInfo>
               <strong>Nome:</strong><p>{userData.name}</p>
@@ -225,14 +260,12 @@ const UserDashboard = () => {
               <strong>Atualizado em:</strong><p>{formatDate(userData.updatedAt)}</p>
             </ProfileInfo>
           </ProfileContent>
-          {/* NOVO: Container de botões com o novo layout */}
           <ActionsContainer>
             <ActionButton onClick={() => setIsEditing(true)}>Editar Perfil</ActionButton>
             <DangerButton onClick={() => setIsChangingPassword(true)}>Alterar Senha</DangerButton>
           </ActionsContainer>
         </ProfileCard>
 
-        {/* --- Botões de gerenciamento do admin permanecem intactos --- */}
         {authUser?.scope === 'ADMIN' && (
           <AdminButtonsContainer>
             <Link href="/admin/products" passHref legacyBehavior>
@@ -248,4 +281,4 @@ const UserDashboard = () => {
   );
 };
 
-export default withAuth(UserDashboard);
+export default withAuth(AdminDashboard);

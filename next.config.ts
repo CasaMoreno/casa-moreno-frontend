@@ -2,7 +2,6 @@
 const nextConfig = {
   output: 'standalone',
 
-  // Adicionando a configuração do compilador de volta
   compiler: {
     styledComponents: true,
   },
@@ -21,6 +20,14 @@ const nextConfig = {
         port: '8085',
         pathname: '/**',
       },
+      // INÍCIO DA ALTERAÇÃO
+      {
+        protocol: 'https',
+        hostname: 'casa-moreno-bucket.s3.us-east-2.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      // FIM DA ALTERAÇÃO
     ],
   },
   eslint: {

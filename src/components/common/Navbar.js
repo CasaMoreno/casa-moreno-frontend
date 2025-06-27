@@ -4,8 +4,9 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect, useRef } from 'react';
 import apiClient from '@/api/axios';
+import Avatar from './Avatar'; // Importar Avatar
 
-// --- Ícones SVG ---
+// --- Ícones SVG (sem alterações) ---
 const PanelIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
@@ -16,7 +17,6 @@ const LogoutIcon = () => (
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>
   </svg>
 );
-// NOVO ÍCONE DE LOGIN
 const LoginIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
@@ -24,7 +24,7 @@ const LoginIcon = () => (
 );
 
 
-// --- Componentes Estilizados ---
+// --- Componentes Estilizados (com pequenas alterações) ---
 const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
@@ -72,7 +72,7 @@ const StyledLink = styled(Link)`
   transition: color 0.3s ease-out;
   color: ${({ $isActive }) => ($isActive ? 'white' : 'rgba(255, 255, 255, 0.7)')};
   font-size: ${({ $isActive }) => ($isActive ? '1.05rem' : '1rem')};
-  display: inline-flex; /* Para alinhar ícone e texto */
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 
@@ -100,7 +100,7 @@ const UserMenuContainer = styled.div`
 const UserMenuButton = styled.button`
   background: none; border: none; color: white;
   font-weight: bold; font-size: 1rem; cursor: pointer;
-  padding: 8px 4px; display: flex; align-items: center; gap: 0.5rem;
+  padding: 8px 4px; display: flex; align-items: center; gap: 0.75rem; // Gap aumentado
   &:hover { color: rgba(255, 255, 255, 0.9); }
 `;
 
@@ -202,9 +202,10 @@ const MenuHeader = styled.div`
 `;
 
 const UserGreeting = styled.p`
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: white;
+  margin-top: 1rem;
+  font-weight: bold;
 `;
 
 const MenuSection = styled.div`
@@ -230,19 +231,15 @@ const MenuLink = styled(Link)`
   gap: 1rem;
   padding: 0.8rem 1rem;
   width: 100%;
-  
   font-family: inherit;
   font-size: 1.1rem;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.9);
-  
   text-align: left;
   text-decoration: none;
-  
   background: transparent;
   border: none;
   border-radius: 8px;
-  
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 
@@ -290,9 +287,12 @@ const Navbar = () => {
     apiClient.get('/products/categories').then(res => setCategories(res.data)).catch(console.error);
   }, []);
 
+  // Busca os dados do usuário, incluindo a URL da foto
   useEffect(() => {
     if (user) {
-      apiClient.get(`/users/username?username=${user.username}`).then(res => setUserData(res.data)).catch(console.error);
+      apiClient.get(`/users/username?username=${user.username}`)
+        .then(res => setUserData(res.data))
+        .catch(console.error);
     } else {
       setUserData(null);
     }
@@ -345,7 +345,10 @@ const Navbar = () => {
         <DesktopLinksContainer>
           {user && userData ? (
             <UserMenuContainer ref={userMenuRef}>
-              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>Olá, {firstName} ▼</UserMenuButton>
+              <UserMenuButton onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+                <Avatar user={userData} size="32px" fontSize="1.2rem" />
+                Olá, {firstName} ▼
+              </UserMenuButton>
               <DropdownMenu $isOpen={isUserMenuOpen}>
                 <DropdownItem href={getDashboardPath()} onClick={() => setIsUserMenuOpen(false)}>
                   <PanelIcon />
@@ -373,8 +376,13 @@ const Navbar = () => {
 
         <MobileMenu $isOpen={isMobileMenuOpen}>
           <MenuHeader>
-            <LogoText>Casa Moreno</LogoText>
-            {user && userData && <UserGreeting>Olá, {firstName}</UserGreeting>}
+            {user && userData && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Avatar user={userData} size="80px" fontSize="2.5rem" />
+                <UserGreeting>Olá, {firstName}</UserGreeting>
+              </div>
+            )}
+            {!user && <LogoText>Casa Moreno</LogoText>}
           </MenuHeader>
 
           <MenuSection>
