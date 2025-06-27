@@ -9,8 +9,8 @@ import Button from '@/components/common/Button';
 import UserEditModal from '@/components/admin/UserEditModal';
 import ChangePasswordModal from '@/components/common/ChangePasswordModal';
 import { formatPhoneNumber } from '@/utils/formatters';
-import Avatar from '@/components/common/Avatar'; // Importar Avatar
-import ProfilePictureModal from '@/components/common/ProfilePictureModal'; // Importar Modal
+import Avatar from '@/components/common/Avatar';
+import ProfilePictureModal from '@/components/common/ProfilePictureModal';
 
 const DashboardContainer = styled.div`
   max-width: 900px;
@@ -38,72 +38,106 @@ const ProfileCard = styled.div`
   @media ${({ theme }) => theme.breakpoints.mobile} { 
     flex-direction: column; 
     align-items: center;
+    gap: 1.5rem;
   }
 `;
 
-// Container para o Avatar e o botão de upload
+// --- INÍCIO DAS ALTERAÇÕES ---
+
 const AvatarContainer = styled.div`
   position: relative;
-  
-  &:hover button {
-    opacity: 1;
-  }
+  cursor: pointer;
 `;
 
-const UploadButton = styled(Button)`
+const EditIconOverlay = styled.div`
   position: absolute;
-  bottom: 5px;
-  right: 5px;
+  bottom: 0;
+  right: 0;
+  background: ${({ theme }) => theme.colors.primaryBlue};
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  z-index: 10;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 `;
+
+const EditIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+  </svg>
+);
 
 const ProfileContent = styled.div`
-    flex-grow: 1;
+  flex-grow: 1;
+  width: 100%;
 `;
 
+// Layout de informações aprimorado
 const ProfileInfo = styled.div`
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 0.8rem;
-  font-size: 1.1rem;
-  strong { text-align: right; color: #666; }
-  p { margin: 0; word-break: break-all; }
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  flex-direction: column;
   
-  @media ${({ theme }) => theme.breakpoints.mobile} {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 1rem;
-    strong { text-align: center; margin-bottom: -0.5rem; }
+  strong {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+    word-break: break-all;
   }
 `;
 
 const ActionsContainer = styled.div`
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  /* Em telas maiores, fica na vertical no canto */
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 5;
 
-    @media ${({ theme }) => theme.breakpoints.mobile} {
-        position: static;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        margin-top: 2rem;
-        order: 3;
-    }
+  /* Em telas menores, fica na horizontal abaixo das informações */
+  @media ${({ theme }) => theme.breakpoints.tablet} {
+    position: static;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin-top: 2rem;
+    order: 3;
+  }
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    position: static;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin-top: 2rem;
+    order: 3;
+  }
 `;
+
+// --- FIM DAS ALTERAÇÕES ---
 
 const ActionButton = styled(Button)`
     padding: 8px 16px;
@@ -118,21 +152,12 @@ const DangerButton = styled(ActionButton)`
     }
 `;
 
-const UploadIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-    <polyline points="17 8 12 3 7 8"></polyline>
-    <line x1="12" y1="3" x2="12" y2="15"></line>
-  </svg>
-);
-
-
 const UserDashboard = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [isPictureModalOpen, setIsPictureModalOpen] = useState(false); // Estado para o modal da foto
+  const [isPictureModalOpen, setIsPictureModalOpen] = useState(false);
   const { showNotification } = useNotification();
 
   const fetchUserData = () => {
@@ -159,16 +184,14 @@ const UserDashboard = () => {
   };
 
   const handleUploadSuccess = (newUrl) => {
-    // Atualiza a URL da foto no estado local para refletir a mudança imediatamente
     setUserData(prev => ({ ...prev, profilePictureUrl: newUrl }));
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Não disponível';
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
-
 
   if (authLoading || !userData) {
     return <Layout><div>Carregando...</div></Layout>;
@@ -192,21 +215,31 @@ const UserDashboard = () => {
       <DashboardContainer>
         <Title>Meu Perfil</Title>
         <ProfileCard>
-          <AvatarContainer>
+          <AvatarContainer onClick={() => setIsPictureModalOpen(true)}>
             <Avatar user={userData} />
-            <UploadButton onClick={() => setIsPictureModalOpen(true)} title="Alterar foto de perfil">
-              <UploadIcon />
-            </UploadButton>
+            <EditIconOverlay title="Alterar Foto">
+              <EditIcon />
+            </EditIconOverlay>
           </AvatarContainer>
 
           <ProfileContent>
             <ProfileInfo>
-              <strong>Nome:</strong><p>{userData.name || 'Não informado'}</p>
-              <strong>Username:</strong><p>{userData.username || 'Não informado'}</p>
-              <strong>Email:</strong><p>{userData.email || 'Não informado'}</p>
-              <strong>Telefone:</strong><p>{formatPhoneNumber(userData.phone) || 'Não informado'}</p>
-              <strong>Criado em:</strong><p>{formatDate(userData.createdAt)}</p>
-              <strong>Atualizado em:</strong><p>{formatDate(userData.updatedAt)}</p>
+              <InfoItem>
+                <strong>Nome</strong>
+                <p>{userData.name || 'Não informado'}</p>
+              </InfoItem>
+              <InfoItem>
+                <strong>Email</strong>
+                <p>{userData.email || 'Não informado'}</p>
+              </InfoItem>
+              <InfoItem>
+                <strong>Telefone</strong>
+                <p>{formatPhoneNumber(userData.phone) || 'Não informado'}</p>
+              </InfoItem>
+              <InfoItem>
+                <strong>Membro desde</strong>
+                <p>{formatDate(userData.createdAt)}</p>
+              </InfoItem>
             </ProfileInfo>
           </ProfileContent>
 
