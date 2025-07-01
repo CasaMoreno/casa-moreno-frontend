@@ -16,7 +16,7 @@ const SpeechBubble = styled.div`
   width: 240px; 
   background: ${({ theme }) => theme.colors.gradient};
   color: white;
-  padding: 1rem;
+  padding: 1rem 2.5rem 1rem 1.5rem; /* Ajuste no padding: top, right, bottom, left */
   border-radius: 12px;
   font-size: 0.9rem;
   line-height: 1.4;
@@ -41,8 +41,8 @@ const SpeechBubble = styled.div`
 
 const BubbleCloseButton = styled.button`
   position: absolute;
-  top: 4px;
-  right: 8px;
+  top: 8px;  /* Leve ajuste na posição */
+  right: 8px; /* Leve ajuste na posição */
   background: none;
   border: none;
   color: white;
@@ -179,21 +179,17 @@ const ChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messageAreaRef = useRef(null);
 
-  // --- INÍCIO DA ALTERAÇÃO ---
   useEffect(() => {
-    // Pega o timestamp de quando o balão foi fechado
     const dismissedTimestamp = localStorage.getItem('casaMorenoBubbleDismissed');
 
     if (dismissedTimestamp) {
-      const oneDay = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+      const oneDay = 24 * 60 * 60 * 1000;
       const now = new Date().getTime();
 
-      // Se já se passaram mais de 24 horas, mostra o balão de novo
       if (now - dismissedTimestamp > oneDay) {
         setIsBubbleVisible(true);
       }
     } else {
-      // Se nunca foi fechado, mostra o balão
       setIsBubbleVisible(true);
     }
   }, []);
@@ -241,10 +237,8 @@ const ChatWidget = () => {
   const handleCloseBubble = (e) => {
     e.stopPropagation();
     setIsBubbleVisible(false);
-    // Salva o timestamp atual no localStorage
     localStorage.setItem('casaMorenoBubbleDismissed', new Date().getTime());
   };
-  // --- FIM DA ALTERAÇÃO ---
 
   return (
     <WidgetContainer>
