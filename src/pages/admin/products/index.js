@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,7 +8,6 @@ import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 import { useNotification } from '@/hooks/useNotification';
-import SyncReportModal from '@/components/admin/SyncReportModal';
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -39,8 +38,6 @@ const HeaderActions = styled.div`
   gap: 1rem;
   flex-wrap: wrap;
 
-  // ATUALIZAÇÃO DE RESPONSIVIDADE:
-  // Em telas móveis, os botões de ação agora ficam empilhados e ocupam 100% da largura.
   @media ${({ theme }) => theme.breakpoints.mobile} {
     flex-direction: column;
     width: 100%;
@@ -52,15 +49,8 @@ const HeaderActions = styled.div`
   }
 `;
 
-// ATUALIZAÇÃO DE COR: Botão de sincronização agora é verde.
-const SyncButton = styled(Button)`
-    background-color: #28a745;
-    &:hover:not(:disabled) {
-        background-color: #218838;
-    }
-`;
-
 const PageTitle = styled.h1``;
+
 const TableWrapper = styled.div`
   overflow-x: auto;
   transition: max-height 0.3s ease-in-out;
@@ -189,14 +179,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
         return initialCollapsed;
     });
 
-    const [isSyncing, setIsSyncing] = useState(false);
     const router = useRouter();
-    const syncIntervalRef = useRef(null);
-
-    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-    const [syncReport, setSyncReport] = useState('');
-    const [syncError, setSyncError] = useState('');
-
 
     const groupedAndSortedProducts = useMemo(() => {
         const grouped = products.reduce((acc, product) => {
@@ -223,63 +206,6 @@ const ProductsManagementPage = ({ initialProducts }) => {
             }
             return newSet;
         });
-    };
-
-    const handleSyncProducts = async () => {
-        setIsSyncing(true);
-        setSyncReport('');
-        setSyncError('');
-        showNotification({
-            title: 'Sincronização Iniciada',
-            message: 'O processo pode levar vários minutos. Um relatório será exibido ao final.',
-            type: 'info'
-        });
-
-        try {
-            const startResponse = await apiClient.post('/products/start-sync');
-            const { taskId } = startResponse.data;
-
-            if (!taskId) {
-                throw new Error('Não foi possível obter um ID para a tarefa de sincronização.');
-            }
-
-            syncIntervalRef.current = setInterval(async () => {
-                try {
-                    const statusResponse = await apiClient.get(`/products/sync-status/${taskId}`);
-                    const { status, report, error } = statusResponse.data;
-
-                    if (status === 'COMPLETED') {
-                        clearInterval(syncIntervalRef.current);
-                        setIsSyncing(false);
-                        setSyncReport(report);
-                        setIsReportModalOpen(true);
-                    } else if (status === 'FAILED') {
-                        clearInterval(syncIntervalRef.current);
-                        setIsSyncing(false);
-                        setSyncError(error || 'Ocorreu uma falha no processo de sincronização.');
-                        setIsReportModalOpen(true);
-                    }
-                } catch (pollError) {
-                    clearInterval(syncIntervalRef.current);
-                    setIsSyncing(false);
-                    console.error("Falha ao verificar status da sincronização:", pollError);
-                    showNotification({
-                        title: 'Erro de Comunicação',
-                        message: 'Não foi possível verificar o progresso da sincronização.',
-                        type: 'error'
-                    });
-                }
-            }, 5000);
-
-        } catch (startError) {
-            setIsSyncing(false);
-            console.error("Falha ao iniciar a sincronização:", startError);
-            showNotification({
-                title: 'Erro ao Iniciar',
-                message: startError.response?.data?.message || 'Não foi possível iniciar o processo.',
-                type: 'error'
-            });
-        }
     };
 
     const handleDelete = async (productId, productTitle) => {
@@ -310,29 +236,14 @@ const ProductsManagementPage = ({ initialProducts }) => {
         }
     };
 
-    const handleCloseReportModal = () => {
-        setIsReportModalOpen(false);
-        router.reload();
-    };
-
     return (
         <Layout>
-            <SyncReportModal
-                isOpen={isReportModalOpen}
-                onClose={handleCloseReportModal}
-                report={syncReport}
-                error={syncError}
-            />
-
             <PageContainer>
                 <PageHeader>
                     <PageTitle>Gerenciamento de Produtos</PageTitle>
                     <HeaderActions>
                         <Link href="/admin" passHref><Button as="a" style={{ backgroundColor: '#6c757d' }}>Voltar ao Painel</Button></Link>
                         <Link href="/admin/new-product"><Button>Adicionar Novo Produto</Button></Link>
-                        <SyncButton onClick={handleSyncProducts} disabled={isSyncing}>
-                            {isSyncing ? 'Sincronizando...' : 'Sincronizar com Scraper'}
-                        </SyncButton>
                     </HeaderActions>
                 </PageHeader>
 
