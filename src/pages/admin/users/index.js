@@ -8,6 +8,7 @@ import apiClient from '@/api/axios';
 import UserEditModal from '@/components/admin/UserEditModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
+import Avatar from '@/components/common/Avatar'; // Importação do componente Avatar
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -49,11 +50,12 @@ const UserTable = styled.table`
   }
   th { 
       background-color: #f2f2f2; 
+      text-align: center;
   }
   td {
       text-align: center;
   }
-  th:first-child, td:first-child {
+  th:nth-child(2), td:nth-child(2) { /* Alinhamento para a coluna de Nome */
       text-align: left;
       padding-left: 20px;
       white-space: normal;
@@ -94,17 +96,12 @@ const UsersManagementPage = ({ initialUsers }) => {
     const { user: loggedInAdmin } = useAuth();
     const { showConfirmation, showNotification } = useNotification();
 
-    // --- INÍCIO DA ALTERAÇÃO ---
-    // A lógica de filtragem foi tornada mais robusta.
-    // Agora, se a informação do admin ainda não carregou, a lista fica vazia.
-    // Assim que a informação chega, a lista é filtrada e renderizada corretamente.
     const displayedUsers = useMemo(() => {
         if (!loggedInAdmin) {
-            return []; // Retorna uma lista vazia enquanto o usuário admin não é carregado
+            return [];
         }
         return users.filter(user => user.userId !== loggedInAdmin.userId);
     }, [users, loggedInAdmin]);
-    // --- FIM DA ALTERAÇÃO ---
 
 
     const handleDeleteUser = (userId, userName) => {
@@ -156,6 +153,7 @@ const UsersManagementPage = ({ initialUsers }) => {
                     <UserTable>
                         <thead>
                             <tr>
+                                <th>Foto</th>
                                 <th>Nome</th>
                                 <th>Username</th>
                                 <th>Email</th>
@@ -167,6 +165,9 @@ const UsersManagementPage = ({ initialUsers }) => {
                             {displayedUsers.length > 0 ? (
                                 displayedUsers.map(user => (
                                     <tr key={user.userId}>
+                                        <td>
+                                            <Avatar user={user} size="40px" fontSize="1.2rem" />
+                                        </td>
                                         <td>{user.name}</td>
                                         <td>{user.username}</td>
                                         <td>{user.email}</td>
@@ -181,7 +182,7 @@ const UsersManagementPage = ({ initialUsers }) => {
                                 ))
                             ) : (
                                 <tr>
-                                    <EmptyStateCell colSpan="5">
+                                    <EmptyStateCell colSpan="6">
                                         Nenhum outro usuário encontrado.
                                     </EmptyStateCell>
                                 </tr>
