@@ -12,6 +12,22 @@ const FilterContainer = styled.aside`
     margin-bottom: 2rem; 
   }
 
+  @media ${({ theme }) => theme.breakpoints.tablet} {
+    max-width: 200px; // Revertido para o layout de coluna
+    margin-right: 2rem;
+    padding-right: 2rem;
+    border-right: 1px solid #ddd;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    display: block; // Garante o layout vertical
+
+    h3 {
+        text-align: left;
+        margin-bottom: 2rem;
+    }
+  }
+
   @media ${({ theme }) => theme.breakpoints.mobile} {
     max-width: 100%;
     width: 100%;
@@ -21,7 +37,30 @@ const FilterContainer = styled.aside`
     border-bottom: 1px solid #ddd;
     padding-bottom: 1rem;
     margin-bottom: 2rem;
+    display: block; // Layout de bloco para empilhar os elementos
+
+    h3 {
+      width: 100%;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
   }
+`;
+
+const MobileFilterWrapper = styled.div`
+    @media ${({ theme }) => theme.breakpoints.mobile} {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+`;
+
+const TopRow = styled.div`
+    @media ${({ theme }) => theme.breakpoints.mobile} {
+        display: flex;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
 `;
 
 const FilterGroup = styled.div`
@@ -29,6 +68,15 @@ const FilterGroup = styled.div`
   
   h4 {
     margin-bottom: 0.75rem;
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    flex: 1; // Permite que os grupos da primeira linha dividam o espaço
+    margin-bottom: 0;
+
+    h4 {
+      text-align: left;
+    }
   }
 `;
 
@@ -79,57 +127,60 @@ const ProductFilter = ({
   return (
     <FilterContainer>
       <h3>Filtros</h3>
-      <FilterGroup>
-        <h4>Marca</h4>
-        {brands.map(brand => (
-          <CheckboxContainer key={brand}>
-            <input
-              type="checkbox"
-              id={brand}
-              name={brand}
-              checked={selectedBrands.includes(brand)}
-              onChange={() => onBrandChange(brand)}
+      <MobileFilterWrapper>
+        <TopRow>
+          <FilterGroup>
+            <h4>Marca</h4>
+            {brands.map(brand => (
+              <CheckboxContainer key={brand}>
+                <input
+                  type="checkbox"
+                  id={brand}
+                  name={brand}
+                  checked={selectedBrands.includes(brand)}
+                  onChange={() => onBrandChange(brand)}
+                />
+                <label htmlFor={brand}>{brand}</label>
+              </CheckboxContainer>
+            ))}
+          </FilterGroup>
+
+          <FilterGroup>
+            <h4>Condição</h4>
+            {conditions.map(condition => (
+              <CheckboxContainer key={condition}>
+                <input
+                  type="checkbox"
+                  id={condition}
+                  name={condition}
+                  checked={selectedConditions.includes(condition)}
+                  onChange={() => onConditionChange(condition)}
+                />
+                <label htmlFor={condition}>{condition}</label>
+              </CheckboxContainer>
+            ))}
+          </FilterGroup>
+        </TopRow>
+
+        <FilterGroup>
+          <h4>Preço</h4>
+          <PriceFilterContainer>
+            <PriceInput
+              type="number"
+              placeholder="Mín."
+              value={minPrice}
+              onChange={onMinPriceChange}
             />
-            <label htmlFor={brand}>{brand}</label>
-          </CheckboxContainer>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup>
-        <h4>Condição</h4>
-        {conditions.map(condition => (
-          <CheckboxContainer key={condition}>
-            <input
-              type="checkbox"
-              id={condition}
-              name={condition}
-              checked={selectedConditions.includes(condition)}
-              onChange={() => onConditionChange(condition)}
+            <span>-</span>
+            <PriceInput
+              type="number"
+              placeholder="Máx."
+              value={maxPrice}
+              onChange={onMaxPriceChange}
             />
-            <label htmlFor={condition}>{condition}</label>
-          </CheckboxContainer>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup>
-        <h4>Preço</h4>
-        <PriceFilterContainer>
-          <PriceInput
-            type="number"
-            placeholder="Mín."
-            value={minPrice}
-            onChange={onMinPriceChange}
-          />
-          <span>-</span>
-          <PriceInput
-            type="number"
-            placeholder="Máx."
-            value={maxPrice}
-            onChange={onMaxPriceChange}
-          />
-        </PriceFilterContainer>
-      </FilterGroup>
-
+          </PriceFilterContainer>
+        </FilterGroup>
+      </MobileFilterWrapper>
     </FilterContainer>
   );
 }

@@ -26,6 +26,17 @@ const ProductsGrid = styled.div`
   gap: 1.5rem;
 `;
 
+const CategoryTitle = styled.h2`
+  text-align: center;
+  margin: 2rem 0;
+  text-transform: capitalize;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 1.5rem;
+    margin: 1.5rem 0;
+  }
+`;
+
 const ProductsPage = ({ products, category, allBrands }) => {
     const router = useRouter();
 
@@ -78,7 +89,7 @@ const ProductsPage = ({ products, category, allBrands }) => {
 
     return (
         <Layout>
-            <h2 style={{ textAlign: 'center', margin: '2rem 0', textTransform: 'capitalize' }}>{category}</h2>
+            <CategoryTitle>{category}</CategoryTitle>
             <ProductsPageContainer>
                 <ProductFilter
                     brands={allBrands}
