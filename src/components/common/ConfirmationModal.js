@@ -23,6 +23,11 @@ const ModalContent = styled.div`
   width: 100%;
   max-width: 450px;
   text-align: center;
+  margin: 1rem;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1.5rem;
+  }
 `;
 
 const ModalTitle = styled.h2`

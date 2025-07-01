@@ -30,6 +30,10 @@ const ModalContent = styled.div`
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 450px;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1.5rem;
+  }
 `;
 
 const Form = styled.form`

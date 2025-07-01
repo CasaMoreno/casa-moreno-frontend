@@ -348,6 +348,10 @@ const CurrentPrice = styled.p`
    font-weight: bold;
    color: ${({ theme }) => theme.colors.primaryBlue};
    margin: 0;
+
+   @media ${({ theme }) => theme.breakpoints.mobile} {
+     font-size: 2.2rem;
+   }
  `;
 
 const InstallmentInfo = styled.p`
@@ -361,6 +365,11 @@ const AffiliateButton = styled(Button)`
    font-size: 1.2rem;
    width: 100%;
    margin-top: 2rem;
+
+   @media ${({ theme }) => theme.breakpoints.mobile} {
+     padding: 0.8rem 1.5rem;
+     font-size: 1.1rem;
+   }
  `;
 
 const DescriptionSection = styled.div`

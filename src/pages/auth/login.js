@@ -34,6 +34,10 @@ const LoginForm = styled.form`
     margin-top: 1.5rem;
     text-align: center;
   }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1.5rem;
+  }
 `;
 
 const ErrorMessage = styled.p`
@@ -91,7 +95,6 @@ const GoogleButton = styled.a`
   }
 `;
 
-// --- NOVO COMPONENTE ---
 const ForgotPasswordLink = styled.div`
   text-align: right;
   margin-top: -1rem;
@@ -145,13 +148,11 @@ const LoginPage = () => {
           <Input id="username" label="Usuário ou E-mail" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
           <Input id="password" label="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          {/* --- INÍCIO DA ALTERAÇÃO --- */}
           <ForgotPasswordLink>
             <Link href="/auth/forgot-password">
               Esqueceu sua senha?
             </Link>
           </ForgotPasswordLink>
-          {/* --- FIM DA ALTERAÇÃO --- */}
 
           <Button type="submit" style={{ width: '100%', padding: '12px' }}>Entrar</Button>
           <Separator>ou</Separator>

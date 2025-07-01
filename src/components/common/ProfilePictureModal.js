@@ -18,6 +18,10 @@ const ModalContent = styled.div`
   background: white; padding: 2rem; border-radius: 8px;
   width: 100%; max-width: 600px;
   max-height: 90vh; display: flex; flex-direction: column;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1.5rem;
+  }
 `;
 
 const ModalHeader = styled.h2`

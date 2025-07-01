@@ -33,18 +33,16 @@ const HeroSection = styled.section`
   position: relative;
   width: 100%;
   height: 0;
-  padding-top: 40%; 
+  padding-top: 40%;
 `;
 
 const Section = styled.section`
   padding: 2.5rem 2rem;
   background-color: ${({ theme, $isWhite }) => $isWhite ? 'white' : theme.colors.lightGray};
 
-  /* --- ALTERAÇÃO AQUI --- */
-  /* Adicionando uma classe para a seção de ofertas */
   &.offers-section {
     padding-top: 2.5rem;
-    padding-bottom: 0.5rem; /* Espaço vertical reduzido */
+    padding-bottom: 0.5rem;
   }
 
   @media ${({ theme }) => theme.breakpoints.mobile} {
@@ -64,7 +62,7 @@ const SectionTitle = styled.h2`
   text-align: left;
   font-size: 2.5rem;
   color: ${({ theme }) => theme.colors.darkGray};
-  margin-bottom: 2rem; 
+  margin-bottom: 2rem;
   position: relative;
   padding-bottom: 0.75rem;
 
@@ -113,6 +111,10 @@ const FeatureCard = styled.div`
         color: #555;
         line-height: 1.6;
     }
+
+    @media ${({ theme }) => theme.breakpoints.mobile} {
+      padding: 1.5rem 1rem;
+    }
 `;
 
 const CategoryGrid = styled.div`
@@ -158,7 +160,6 @@ const HomePage = ({ promotionalProducts, categories }) => {
 
       <HeroSection />
 
-      {/* --- ALTERAÇÃO AQUI --- */}
       <Section className="offers-section">
         <TitleWrapper>
           <SectionTitle>Ofertas em Destaque</SectionTitle>

@@ -6,6 +6,10 @@ const FooterContainer = styled.footer`
   background-color: ${({ theme }) => theme.colors.darkGray};
   color: ${({ theme }) => theme.colors.white};
   margin-top: auto;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1.5rem 1rem;
+  }
 `;
 
 const Footer = () => {

@@ -31,6 +31,10 @@ const FormWrapper = styled.div`
     margin-bottom: 2rem;
     color: ${({ theme }) => theme.colors.primaryBlue};
   }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1.5rem;
+  }
 `;
 
 const ErrorMessage = styled.p`

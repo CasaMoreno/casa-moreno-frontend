@@ -34,6 +34,10 @@ const FormWrapper = styled.div`
     color: #666;
     margin-bottom: 2rem;
   }
+  
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1.5rem;
+  }
 `;
 
 const Message = styled.p`

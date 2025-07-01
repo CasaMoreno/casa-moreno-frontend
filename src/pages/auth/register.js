@@ -36,6 +36,13 @@ const RegisterForm = styled.form`
     margin-bottom: 2rem;
     color: ${({ theme }) => theme.colors.primaryBlue};
   }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 2rem 1.5rem;
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
 `;
 
 const FormGroup = styled.fieldset`
@@ -88,6 +95,11 @@ const AvatarPreview = styled.div`
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    width: 100px;
+    height: 100px;
   }
 `;
 

@@ -26,10 +26,15 @@ const ModalContent = styled.div`
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 500px;
+  
   h2 {
     margin-top: 0;
     margin-bottom: 2rem;
     text-align: center;
+  }
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    padding: 1.5rem;
   }
 `;
 

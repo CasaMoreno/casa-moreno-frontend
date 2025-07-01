@@ -46,6 +46,10 @@ const LogoText = styled.span`
   font-size: 1.5rem;
   font-weight: 400;
   color: white;
+
+  @media ${({ theme }) => theme.breakpoints.mobile} {
+    font-size: 1.4rem;
+  }
 `;
 
 const LogoTextLink = styled(Link)`
