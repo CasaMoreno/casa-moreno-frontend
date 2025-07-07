@@ -1,0 +1,10 @@
+# Regra para todos os robôs de busca (incluindo o Google)
+User-agent: *
+
+# Páginas que NÃO devem ser rastreadas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /auth/
+
+# Permissão para rastrear todo o resto do site
+Allow: /
