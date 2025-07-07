@@ -8,3 +8,6 @@ Disallow: /auth/
 
 # Permissão para rastrear todo o resto do site
 Allow: /
+
+# Localização do Sitemap
+Sitemap: https://www.casa-moreno.com/sitemap.xml
