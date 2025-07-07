@@ -771,7 +771,7 @@ export async function getServerSideProps(context) {
     return { props: { product: response.data } };
   } catch (error) {
     console.error(`Failed to fetch product ${id}`, error);
-    return { props: { product: null, error: "Produto não encontrado ou indisponível." } };
+    return { notFound: true };
   }
 }
 
