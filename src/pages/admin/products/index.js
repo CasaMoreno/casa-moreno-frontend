@@ -1,3 +1,4 @@
+// src/pages/admin/products/index.js
 import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import withAuth from '@/utils/withAuth';
 import Button from '@/components/common/Button';
 import apiClient from '@/api/axios';
 import { useNotification } from '@/hooks/useNotification';
+import { formatCurrency } from '@/utils/formatters'; // IMPORTAÇÃO
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -170,19 +172,21 @@ const ProductsManagementPage = ({ initialProducts }) => {
     const { showConfirmation, showNotification } = useNotification();
     const [collapsedCategories, setCollapsedCategories] = useState(() => {
         const initialCollapsed = new Set();
-        if (Object.keys(initialProducts).length > 1) {
+        if (initialProducts && typeof initialProducts === 'object' && !Array.isArray(initialProducts)) {
             const categories = Object.keys(initialProducts).sort();
-            for (let i = 1; i < categories.length; i++) {
-                initialCollapsed.add(categories[i]);
+            if (categories.length > 1) {
+                for (let i = 1; i < categories.length; i++) {
+                    initialCollapsed.add(categories[i]);
+                }
             }
         }
         return initialCollapsed;
     });
-
     const router = useRouter();
 
     const groupedAndSortedProducts = useMemo(() => {
-        const grouped = products.reduce((acc, product) => {
+        const productList = Array.isArray(initialProducts) ? initialProducts : [];
+        const grouped = productList.reduce((acc, product) => {
             const category = product.productCategory || 'Sem Categoria';
             if (!acc[category]) acc[category] = [];
             acc[category].push(product);
@@ -192,7 +196,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
             grouped[category].sort((a, b) => a.productTitle.localeCompare(b.productTitle));
         }
         return grouped;
-    }, [products]);
+    }, [initialProducts]);
 
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 
@@ -215,7 +219,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
             onConfirm: async () => {
                 try {
                     await apiClient.delete(`/products/delete/${productId}`);
-                    setProducts(products.filter(p => p.productId !== productId));
+                    setProducts(currentProducts => currentProducts.filter(p => p.productId !== productId));
                     showNotification({ title: 'Sucesso', message: 'Produto deletado!' });
                 } catch (error) {
                     showNotification({ title: 'Erro', message: 'Falha ao deletar produto.' });
@@ -227,9 +231,11 @@ const ProductsManagementPage = ({ initialProducts }) => {
     const handlePromotionalToggle = async (productId, currentStatus) => {
         try {
             await apiClient.patch(`/products/${productId}/promotional?status=${!currentStatus}`);
-            setProducts(products.map(p =>
-                p.productId === productId ? { ...p, isPromotional: !currentStatus } : p
-            ));
+            setProducts(currentProducts =>
+                currentProducts.map(p =>
+                    p.productId === productId ? { ...p, isPromotional: !currentStatus } : p
+                )
+            );
         } catch (error) {
             console.error("Erro ao alternar status promocional", error);
             showNotification({ title: 'Erro', message: 'Falha ao atualizar status promocional.' });
@@ -278,7 +284,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
                                             </td>
                                             <td>{product.productTitle}</td>
                                             <td>{product.productBrand}</td>
-                                            <td>R$ {product.currentPrice?.toFixed(2).replace('.', ',')}</td>
+                                            <td>{formatCurrency(product.currentPrice)}</td>
                                             <td>
                                                 <SwitchLabel>
                                                     <SwitchInput

@@ -1,3 +1,4 @@
+// src/components/product/ProductCard.js
 import styled from 'styled-components';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
 import apiClient from '@/api/axios';
 import Button from '../common/Button';
+import { formatCurrency } from '@/utils/formatters'; // 1. IMPORTAR A FUNÇÃO
 
 const Card = styled.div`
   border: 1px solid #ddd;
@@ -80,7 +82,6 @@ const ImageWrapper = styled.div`
   padding: 0.5rem;
   transition: height 0.3s ease;
 
-  /* --- INÍCIO DA ALTERAÇÃO --- */
   @media ${({ theme }) => theme.breakpoints.tablet} {
     height: 180px; /* Altura intermediária para tablet */
   }
@@ -88,7 +89,6 @@ const ImageWrapper = styled.div`
   @media ${({ theme }) => theme.breakpoints.mobile} {
     height: 160px; /* Altura menor para celular */
   }
-  /* --- FIM DA ALTERAÇÃO --- */
 `;
 
 const CardContent = styled.div`
@@ -258,7 +258,8 @@ const ProductCard = ({ product }) => {
           <ProductTitle>{productTitle}</ProductTitle>
           <PriceWrapper>
             <Price $isBlurred={!user}>
-              R$ {currentPrice?.toFixed(2).replace('.', ',')}
+              {/* 2. USAR A NOVA FUNÇÃO AQUI */}
+              {formatCurrency(currentPrice)}
             </Price>
           </PriceWrapper>
 

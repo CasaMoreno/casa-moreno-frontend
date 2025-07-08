@@ -12,14 +12,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
 import CancelButton from '@/components/common/CancelButton';
 import AiDescriptionModal from '@/components/admin/AiDescriptionModal';
-
-// DND-KIT Imports
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { formatCurrency } from '@/utils/formatters'; // IMPORTAÇÃO
 
-
-// Ícones SVG
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -45,7 +42,6 @@ const SparkleIcon = () => (
 const StarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>);
 const ArrowLeftIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>);
 const ArrowRightIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>);
-
 
 const PageWrapper = styled.div`
    background-color: #f9f9f9;
@@ -263,7 +259,6 @@ const ThumbnailActions = styled.div`
      }
  `;
 
-
 const ThumbnailList = styled.div`
    display: grid;
    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
@@ -286,7 +281,6 @@ const StyledThumbnail = styled.div`
      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primaryPurple};
    `}
  `;
-
 
 const DetailsColumn = styled.div`
    display: flex;
@@ -480,7 +474,7 @@ const ProductDetailPage = ({ product, error }) => {
     } else {
       setSelectedImageIndex(0);
     }
-  }, [product]);
+  }, [product, currentProduct, selectedImageIndex]);
 
   const handleSaveDescription = async (newDescription) => {
     try {
@@ -498,11 +492,6 @@ const ProductDetailPage = ({ product, error }) => {
 
   if (error) return <Layout><p style={{ textAlign: 'center', marginTop: '3rem' }}>{error}</p></Layout>
   if (router.isFallback || !currentProduct) return <Layout><div>Carregando...</div></Layout>;
-
-  const formatCurrency = (value) => {
-    if (typeof value !== 'number') return '';
-    return value.toFixed(2).replace('.', ',');
-  };
 
   const mainImageUrl = currentProduct.galleryImageUrls?.[selectedImageIndex] || '/placeholder.png';
 
@@ -561,15 +550,19 @@ const ProductDetailPage = ({ product, error }) => {
   };
 
   const handleNextImage = () => {
-    setSelectedImageIndex((prevIndex) =>
-      (prevIndex + 1) % currentProduct.galleryImageUrls.length
-    );
+    if (currentProduct.galleryImageUrls) {
+      setSelectedImageIndex((prevIndex) =>
+        (prevIndex + 1) % currentProduct.galleryImageUrls.length
+      );
+    }
   };
 
   const handlePrevImage = () => {
-    setSelectedImageIndex((prevIndex) =>
-      (prevIndex - 1 + currentProduct.galleryImageUrls.length) % currentProduct.galleryImageUrls.length
-    );
+    if (currentProduct.galleryImageUrls) {
+      setSelectedImageIndex((prevIndex) =>
+        (prevIndex - 1 + currentProduct.galleryImageUrls.length) % currentProduct.galleryImageUrls.length
+      );
+    }
   };
 
   const hasMultipleImages = currentProduct.galleryImageUrls && currentProduct.galleryImageUrls.length > 1;
@@ -727,14 +720,14 @@ const ProductDetailPage = ({ product, error }) => {
               <PricingBlock>
                 {currentProduct.originalPrice > currentProduct.currentPrice && (
                   <PriceRow>
-                    <OriginalPrice>R$ {formatCurrency(currentProduct.originalPrice)}</OriginalPrice>
+                    <OriginalPrice>{formatCurrency(currentProduct.originalPrice)}</OriginalPrice>
                     {currentProduct.discountPercentage && <DiscountBadge>{currentProduct.discountPercentage}</DiscountBadge>}
                   </PriceRow>
                 )}
-                <CurrentPrice>R$ {formatCurrency(currentProduct.currentPrice)}</CurrentPrice>
+                <CurrentPrice>{formatCurrency(currentProduct.currentPrice)}</CurrentPrice>
                 {currentProduct.installments > 1 && (
                   <InstallmentInfo>
-                    ou em <strong>{currentProduct.installments}x de R$ {formatCurrency(currentProduct.installmentValue)}</strong>
+                    ou em <strong>{currentProduct.installments}x de {formatCurrency(currentProduct.installmentValue)}</strong>
                   </InstallmentInfo>
                 )}
               </PricingBlock>
