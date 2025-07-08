@@ -1,6 +1,9 @@
+// Local do arquivo: src/pages/products/[...slug].js
+
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import Head from 'next/head'; // Importar o Head para SEO
 import apiClient from '@/api/axios';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/product/ProductCard';
@@ -87,8 +90,18 @@ const ProductsPage = ({ products, category, allBrands }) => {
         return brandMatch && minPriceMatch && maxPriceMatch && conditionMatch;
     });
 
+    // --- LÓGICA DE SEO ---
+    const pageTitle = `Ofertas de ${category.charAt(0).toUpperCase() + category.slice(1)} | Casa Moreno`;
+    const pageDescription = `Encontre as melhores ofertas e os últimos lançamentos em ${category}. Compare preços e modelos na Casa Moreno.`;
+
     return (
         <Layout>
+            {/* --- ADICIONADO PARA SEO --- */}
+            <Head>
+                <title>{pageTitle}</title>
+                <meta name="description" content={pageDescription} />
+            </Head>
+
             <CategoryTitle>{category}</CategoryTitle>
             <ProductsPageContainer>
                 <ProductFilter
