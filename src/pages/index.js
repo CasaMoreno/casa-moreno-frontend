@@ -155,7 +155,7 @@ const HomePage = ({ promotionalProducts, categories }) => {
     <Layout marqueeProducts={promotionalProducts}>
       <Head>
         <title>Casa Moreno - A melhor loja do mundo</title>
-        <meta name="description" content="Explore as melhores ofertas em smartphones, notebooks e eletrônicos. A Casa Moreno conecta você às melhores oportunidades." />
+        <meta name="description" content="Sonhando com um novo celular ou notebook? Na Casa Moreno, seu próximo eletrônico está a um clique de distância. Explore modelos incríveis e aproveite as melhores condições!" />
       </Head>
 
       <HeroSection />
