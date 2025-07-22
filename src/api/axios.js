@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'https://api.casa-moreno.com',
-  //baseURL: 'http://localhost:8085',
+  //baseURL: 'https://api.casa-moreno.com',
+  baseURL: 'http://localhost:8085',
 });
 
 apiClient.interceptors.request.use((config) => {
