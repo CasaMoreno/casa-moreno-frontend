@@ -64,8 +64,7 @@ jobs:
           -p "${{ env.FRONTEND_HOST_PORT }}":"${{ env.FRONTEND_CONTAINER_PORT }}" \
           --restart always \
           -e NEXT_PUBLIC_BACKEND_URL="${{ env.NEXT_PUBLIC_BACKEND_URL }}" \
-          -e NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES="${{ env.NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES }}" \
-          "${{ env.FRONTEND_DOCKER_IMAGE }}"
+          -e NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES="${{ env.NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES }}" "${{ env.FRONTEND_DOCKER_IMAGE }}"
 
       - name: Clean up old Docker images (opcional)
         run: |
