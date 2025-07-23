@@ -16,7 +16,7 @@ const nextConfig = {
       },
       {
         protocol: 'http',
-        hostname: 'ec2-18-117-94-172.us-east-2.compute.amazonaws.com',
+        hostname: 'casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com',
         port: '8085',
         pathname: '/**',
       },
