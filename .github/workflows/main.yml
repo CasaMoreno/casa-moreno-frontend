@@ -1,15 +1,21 @@
-name: Deploy Frontend to AWS EC2 (Self-Hosted Runner)
+name: Deploy Frontend to AWS EC2 (Self-Hosted Runner) - Debug
 
 on:
   push:
     branches:
-      - main
+      - main # Gatilho para a branch principal do seu frontend
 
 env:
+  # ATENÇÃO: Verifique que esta variável NÃO tem caracteres estranhos como '***' na frente.
+  # Ela deve ser EXATAMENTE 'matteusmoreno/casa-moreno-frontend:latest'
   FRONTEND_DOCKER_IMAGE: matteusmoreno/casa-moreno-frontend:latest
   FRONTEND_CONTAINER_NAME: casa-moreno-frontend-container
   FRONTEND_CONTAINER_PORT: 3001
   FRONTEND_HOST_PORT: 3001
+
+  # Variáveis de ambiente para o frontend (Next.js)
+  # Lembre-se de configurar estas URLs no seu código Next.js com process.env.NEXT_PUBLIC_...
+  # Use o DNS do seu ALB ou o IP Público da EC2 se o backend não for acessível via localhost do frontend.
   NEXT_PUBLIC_BACKEND_URL: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
   NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
 
@@ -32,41 +38,59 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.FRONTEND_DOCKER_IMAGE }}
+          tags: ${{ env.FRONTEND_DOCKER_IMAGE }} # Usando a variável de ambiente definida acima
 
   # Job 2: Deploy direto na instância EC2 usando Self-Hosted Runner
   deploy-to-ec2:
-    runs-on: self-hosted # <--- USA O MESMO RUNNER NA EC2
-    needs: build-and-push
+    runs-on: self-hosted # <--- Este job será executado na sua instância EC2 como self-hosted runner
+    needs: build-and-push # Garante que só roda depois da imagem ser pushada
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Login no Docker Hub a partir do runner da EC2 (necessário para o docker pull)
       - name: Login to Docker Hub from EC2 Runner
         run: |
+          echo "DEBUG: Attempting Docker login for user: ${{ secrets.DOCKERHUB_USERNAME }}"
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "DEBUG: Docker login command executed."
 
       - name: Stop and Remove Old Container
         run: |
-          echo "Stopping and removing old container '${{ env.FRONTEND_CONTAINER_NAME }}'..."
+          echo "DEBUG: Checking for existing container '${{ env.FRONTEND_CONTAINER_NAME }}' to stop and remove..."
           docker stop ${{ env.FRONTEND_CONTAINER_NAME }} || true
           docker rm ${{ env.FRONTEND_CONTAINER_NAME }} || true
+          echo "DEBUG: Old container stop/remove commands executed."
 
       - name: Pull New Docker Image
         run: |
-          echo "Pulling new image '${{ env.FRONTEND_DOCKER_IMAGE }}'..."
+          echo "DEBUG: Attempting to pull new image: ${{ env.FRONTEND_DOCKER_IMAGE }}"
           docker pull ${{ env.FRONTEND_DOCKER_IMAGE }}
+          echo "DEBUG: Docker pull command executed. Image ID on runner: $(docker images -q ${{ env.FRONTEND_DOCKER_IMAGE }})"
 
       - name: Run New Docker Container
-        run: docker run -d \
-          --name "${{ env.FRONTEND_CONTAINER_NAME }}" \
-          -p "${{ env.FRONTEND_HOST_PORT }}":"${{ env.FRONTEND_CONTAINER_PORT }}" \
-          --restart always \
-          -e NEXT_PUBLIC_BACKEND_URL="${{ env.NEXT_PUBLIC_BACKEND_URL }}" \
-          -e NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES="${{ env.NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES }}" "${{ env.FRONTEND_DOCKER_IMAGE }}"
+        run: |
+          echo "DEBUG: Preparing to run new container '${{ env.FRONTEND_CONTAINER_NAME }}'."
+          echo "DEBUG: Using image: '${{ env.FRONTEND_DOCKER_IMAGE }}'"
+          echo "DEBUG: Mapped port: ${{ env.FRONTEND_HOST_PORT }}:${{ env.FRONTEND_CONTAINER_PORT }}"
+          echo "DEBUG: Backend URL: ${{ env.NEXT_PUBLIC_BACKEND_URL }}"
+          echo "DEBUG: Backend Host for Images: ${{ env.NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES }}"
+          
+          # COMANDO DOCKER RUN EM UMA ÚNICA LINHA PARA GARANTIR PARSEAMENTO CORRETO
+          docker run -d \
+            --name "${{ env.FRONTEND_CONTAINER_NAME }}" \
+            -p "${{ env.FRONTEND_HOST_PORT }}":"${{ env.FRONTEND_CONTAINER_PORT }}" \
+            --restart always \
+            -e NEXT_PUBLIC_BACKEND_URL="${{ env.NEXT_PUBLIC_BACKEND_URL }}" \
+            -e NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES="${{ env.NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES }}" \
+            "${{ env.FRONTEND_DOCKER_IMAGE }}" # <- ESTA É A REFERÊNCIA DA IMAGEM, SEM '***' OU OUTROS CARACTERES.
+
+          echo "DEBUG: Docker run command executed."
+          echo "DEBUG: Active containers after run: $(docker ps --format "{{.Names}}")"
 
       - name: Clean up old Docker images (opcional)
         run: |
-          echo "Cleaning up old Docker images..."
+          echo "DEBUG: Cleaning up old Docker images..."
           docker image prune -f
+          echo "DEBUG: Docker image prune executed."
