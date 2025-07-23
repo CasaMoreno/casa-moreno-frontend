@@ -10,12 +10,6 @@ env:
   FRONTEND_CONTAINER_NAME: casa-moreno-frontend-container
   FRONTEND_CONTAINER_PORT: 3001
   FRONTEND_HOST_PORT: 3001
-
-  # Variáveis de ambiente para o frontend (Next.js)
-  # IMPORTANT: Estas variáveis precisam ser passadas para o contêiner
-  # e devem ser configuradas no seu código Next.js para usar process.env.NEXT_PUBLIC_...
-  # Substitua 'SEU_IP_PUBLICO_EC2_BACKEND' pelo IP público ou DNS do seu backend na EC2
-  # ou pelo endereço do seu Load Balancer, se houver.
   NEXT_PUBLIC_BACKEND_URL: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
   NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
 
