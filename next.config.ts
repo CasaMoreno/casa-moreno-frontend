@@ -15,9 +15,9 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
-        hostname: 'casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com',
-        port: '8085',
+        protocol: 'https',
+        hostname: 'www.casa-moreno.com',
+        port: '', // Deixe a porta vazia
         pathname: '/**',
       },
       {
