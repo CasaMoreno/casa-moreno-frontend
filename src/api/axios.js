@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  //baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
-  baseURL: 'http://localhost:8085',
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  //baseURL: 'http://localhost:8085',
 });
 
 apiClient.interceptors.request.use((config) => {
