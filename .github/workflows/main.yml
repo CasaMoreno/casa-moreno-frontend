@@ -17,8 +17,8 @@ env:
   # Variáveis de ambiente para o frontend (Next.js)
   # Lembre-se de configurar estas URLs no seu código Next.js com process.env.NEXT_PUBLIC_...
   # Use o DNS do seu ALB ou o IP Público da EC2 se o backend não for acessível via localhost do frontend.
-  NEXT_PUBLIC_BACKEND_URL: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
-  NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES: http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com
+  NEXT_PUBLIC_BACKEND_URL: https://www.casa-moreno.com
+  NEXT_PUBLIC_BACKEND_HOST_FOR_IMAGES: https://www.casa-moreno.com
 
 jobs:
   # Job 1: Builda a imagem Docker e envia para o Docker Hub
