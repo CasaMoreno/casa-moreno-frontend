@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://casa-moreno-alb-1497417447.us-east-2.elb.amazonaws.com',
+  baseURL: 'https://www.casa-moreno.com',
   //baseURL: 'http://localhost:8085',
 });
 
