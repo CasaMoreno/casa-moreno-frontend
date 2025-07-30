@@ -185,7 +185,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
     const router = useRouter();
 
     const groupedAndSortedProducts = useMemo(() => {
-        const productList = Array.isArray(initialProducts) ? initialProducts : [];
+        const productList = Array.isArray(products) ? products : [];
         const grouped = productList.reduce((acc, product) => {
             const category = product.productCategory || 'Sem Categoria';
             if (!acc[category]) acc[category] = [];
@@ -196,7 +196,7 @@ const ProductsManagementPage = ({ initialProducts }) => {
             grouped[category].sort((a, b) => a.productTitle.localeCompare(b.productTitle));
         }
         return grouped;
-    }, [initialProducts]);
+    }, [products]);
 
     const sortedCategories = Object.keys(groupedAndSortedProducts).sort();
 

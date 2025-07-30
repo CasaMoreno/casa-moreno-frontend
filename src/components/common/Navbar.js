@@ -335,7 +335,7 @@ const Navbar = () => {
         <LogoTextLink href="/"><LogoText>Casa Moreno</LogoText></LogoTextLink>
 
         <DesktopLinksContainer>
-          {categories.map(category => (
+          {Array.isArray(categories) && categories.map(category => (
             <StyledLink
               key={category}
               href={`/products/${category.toLowerCase()}`}
@@ -391,7 +391,7 @@ const Navbar = () => {
 
           <MenuSection>
             <h4>Categorias</h4>
-            {categories.map(category => {
+            {Array.isArray(categories) && categories.map(category => {
               const path = `/products/${category.toLowerCase()}`;
               return (
                 <MenuLink key={`mobile-${category}`} href={path} className={decodeURIComponent(router.asPath).startsWith(path) ? 'active' : ''}>
