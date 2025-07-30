@@ -460,21 +460,11 @@ const ProductDetailPage = ({ product, error }) => {
     })
   );
 
+  // --- CÓDIGO CORRIGIDO ---
   useEffect(() => {
     setCurrentProduct(product);
-    if (product?.galleryImageUrls && product.galleryImageUrls.length > 0) {
-      if (
-        !currentProduct?.galleryImageUrls ||
-        selectedImageIndex >= product.galleryImageUrls.length ||
-        (product.galleryImageUrls[0] !== currentProduct.galleryImageUrls[0] && selectedImageIndex !== 0) ||
-        (selectedImageIndex !== 0 && !product.galleryImageUrls.includes(currentProduct.galleryImageUrls[selectedImageIndex]))
-      ) {
-        setSelectedImageIndex(0);
-      }
-    } else {
-      setSelectedImageIndex(0);
-    }
-  }, [product, currentProduct, selectedImageIndex]);
+    setSelectedImageIndex(0);
+  }, [product]);
 
   const handleSaveDescription = async (newDescription) => {
     try {
@@ -567,44 +557,38 @@ const ProductDetailPage = ({ product, error }) => {
 
   const hasMultipleImages = currentProduct.galleryImageUrls && currentProduct.galleryImageUrls.length > 1;
 
+  // --- CÓDIGO CORRIGIDO ---
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-
     if (!over || active.id === over.id) {
       return;
     }
 
-    const oldIndex = currentProduct.galleryImageUrls.indexOf(active.id);
-    const newIndex = currentProduct.galleryImageUrls.indexOf(over.id);
+    const originalGallery = currentProduct.galleryImageUrls;
+    const oldIndex = originalGallery.indexOf(active.id);
+    const newIndex = originalGallery.indexOf(over.id);
 
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const newOrderedGallery = arrayMove(currentProduct.galleryImageUrls, oldIndex, newIndex);
+    if (oldIndex === -1 || newIndex === -1) return;
 
-      setCurrentProduct(prev => ({ ...prev, galleryImageUrls: newOrderedGallery }));
+    const previouslySelectedImageUrl = originalGallery[selectedImageIndex];
+    const newOrderedGallery = arrayMove(originalGallery, oldIndex, newIndex);
 
-      if (selectedImageIndex === oldIndex) {
-        setSelectedImageIndex(newIndex);
-      } else if (oldIndex < selectedImageIndex && newIndex >= selectedImageIndex) {
-        setSelectedImageIndex(prevIndex => prevIndex - 1);
-      } else if (oldIndex > selectedImageIndex && newIndex <= selectedImageIndex) {
-        setSelectedImageIndex(prevIndex => prevIndex + 1);
-      }
-      if (newIndex === 0 && selectedImageIndex !== 0) {
-        setSelectedImageIndex(0);
-      }
+    setCurrentProduct(prev => ({ ...prev, galleryImageUrls: newOrderedGallery }));
 
-      try {
-        await apiClient.put(`/products/update`, {
-          productId: currentProduct.productId,
-          galleryImageUrls: newOrderedGallery
-        });
-        showNotification({ title: 'Sucesso', message: 'Ordem das imagens atualizada!' });
-      } catch (err) {
-        console.error("Falha ao atualizar a ordem das imagens", err);
-        showNotification({ title: 'Erro', message: 'Falha ao atualizar a ordem das imagens. Tente novamente.' });
-        setCurrentProduct(product);
-        setSelectedImageIndex(product.galleryImageUrls.indexOf(mainImageUrl));
-      }
+    const newSelectedImageIndex = newOrderedGallery.indexOf(previouslySelectedImageUrl);
+    setSelectedImageIndex(newSelectedImageIndex >= 0 ? newSelectedImageIndex : 0);
+
+    try {
+      await apiClient.put(`/products/update`, {
+        productId: currentProduct.productId,
+        galleryImageUrls: newOrderedGallery
+      });
+      showNotification({ title: 'Sucesso', message: 'Ordem das imagens atualizada!' });
+    } catch (err) {
+      console.error("Falha ao atualizar a ordem das imagens", err);
+      showNotification({ title: 'Erro', message: 'Falha ao reordenar as imagens.' });
+      setCurrentProduct(prev => ({ ...prev, galleryImageUrls: originalGallery }));
+      setSelectedImageIndex(originalGallery.indexOf(previouslySelectedImageUrl));
     }
   };
 
