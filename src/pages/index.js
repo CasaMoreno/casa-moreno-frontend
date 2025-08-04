@@ -46,6 +46,44 @@ const VideoBg = styled.video`
   object-fit: cover;
 `;
 
+const HeroTextContainer = styled.div`
+  position: absolute;
+  top: 0.8vw;
+  left: 1.0vw;
+  z-index: 3;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  img {
+    width: clamp(100px, 15vw, 200px);
+    height: auto;
+  }
+
+  p {
+    font-size: clamp(1.2rem, 2.5vw, 2.5rem);
+    font-family: 'Pacifico', cursive;
+  }
+
+    @media (max-width: 767px) {
+    top: 2vw;
+    left: 2vw; 
+    
+    img {
+        width: 13vw; 
+        height: auto;
+    }
+
+    p {
+        display: none;
+    }
+  }
+`;
+
+
 const GradientOverlay = styled.div`
   position: absolute;
   top: 0;
@@ -195,10 +233,14 @@ const HomePage = ({ promotionalProducts, categories }) => {
 
       <HeroVideoContainer>
         <VideoBg autoPlay loop muted playsInline>
-          <source src="/hero-video-1.mp4" type="video/mp4" />
+          <source src="/hero-video-5.mp4" type="video/mp4" />
           Seu navegador não suporta a tag de vídeo.
         </VideoBg>
         <GradientOverlay />
+        <HeroTextContainer>
+          <img src="/casa-moreno-logo-no-background.png" alt="Logo da Casa Moreno" />
+          <p>A melhor loja do mundo</p>
+        </HeroTextContainer>
         <CurveSvgWrapper>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path
