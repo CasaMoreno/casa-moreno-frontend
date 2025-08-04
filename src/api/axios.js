@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  //baseURL: 'https://www.casa-moreno.com',
   //baseURL: 'http://localhost:8085',
 });
 

@@ -26,14 +26,49 @@ const TagIcon = () => (
   </svg>
 );
 
-const HeroSection = styled.section`
-  background-image: url('/casa-moreno-banner2.jpeg');
-  background-size: cover;
-  background-position: center center;
+// --- ESTILOS CORRIGIDOS PARA O VÍDEO E O NOVO ARCO ---
+
+const HeroVideoContainer = styled.section`
   position: relative;
   width: 100%;
   height: 0;
-  padding-top: 40%;
+  padding-top: 50%;
+  background-color: ${({ theme }) => theme.colors.primaryBlue};
+  overflow: hidden;
+`;
+
+const VideoBg = styled.video`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const GradientOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: ${({ theme }) => theme.colors.gradient};
+  opacity: 0.6;
+  z-index: 1;
+`;
+
+const CurveSvgWrapper = styled.div`
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  z-index: 2;
+  line-height: 0;
+
+  svg {
+    width: 100%;
+    height: auto;
+  }
 `;
 
 const Section = styled.section`
@@ -158,7 +193,21 @@ const HomePage = ({ promotionalProducts, categories }) => {
         <meta name="description" content="Sonhando com um novo celular ou notebook? Na Casa Moreno, seu próximo eletrônico está a um clique de distância. Explore modelos incríveis e aproveite as melhores condições!" />
       </Head>
 
-      <HeroSection />
+      <HeroVideoContainer>
+        <VideoBg autoPlay loop muted playsInline>
+          <source src="/hero-video-1.mp4" type="video/mp4" />
+          Seu navegador não suporta a tag de vídeo.
+        </VideoBg>
+        <GradientOverlay />
+        <CurveSvgWrapper>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
+            <path
+              d="M0,0 C360,80 1080,80 1440,0 L1440,120 L0,120 Z"
+              fill="white"
+            />
+          </svg>
+        </CurveSvgWrapper>
+      </HeroVideoContainer>
 
       <Section className="offers-section">
         <TitleWrapper>
