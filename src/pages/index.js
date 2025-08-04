@@ -245,7 +245,7 @@ const HomePage = ({ promotionalProducts, categories }) => {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path
               d="M0,0 C360,80 1080,80 1440,0 L1440,120 L0,120 Z"
-              fill="white"
+              fill="#F5F5F5"
             />
           </svg>
         </CurveSvgWrapper>
@@ -258,7 +258,7 @@ const HomePage = ({ promotionalProducts, categories }) => {
         <Carousel products={promotionalProducts} />
       </Section>
 
-      <Section $isWhite>
+      <Section>
         <TitleWrapper>
           <SectionTitle>Navegue por Categorias</SectionTitle>
         </TitleWrapper>
