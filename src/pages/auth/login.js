@@ -127,7 +127,9 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
 
+  //const googleLoginUrl = `${apiClient.defaults.baseURL}/oauth2/authorization/google?prompt=select_account`;
   const googleLoginUrl = `https://www.casa-moreno.com/oauth2/authorization/google?prompt=select_account`;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
